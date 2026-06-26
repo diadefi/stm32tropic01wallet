@@ -1,0 +1,162 @@
+param(
+    [string]$Port = "COM3",
+    [string]$Network = "REGTEST",
+
+    [string]$TxidLe,
+    [uint32]$Vout = 0,
+    [uint64]$InputSats = 0,
+
+    [string]$PrevScript = "76a914751e76e8199196d454941c45d1b3a323f1433bd688ac",
+    [string]$PayScript = "76a914f2124d94cabdb95d49479627cbbe5d7be609f73888ac",
+    [uint64]$PaySats = 60000,
+
+    [string]$ChangeScript = "76a914751e76e8199196d454941c45d1b3a323f1433bd688ac",
+    [uint64]$ChangeSats = 30000,
+
+    [string]$RawTxOutFile = "",
+
+    [string]$UnlockSecret = "mvp-regtest-unlock",
+    [switch]$OmitUnlockSecret
+)
+
+$ErrorActionPreference = "Stop"
+
+$cmdLines = @(
+    "NETWORK=$Network",
+    "TXID_LE=$TxidLe",
+    "VOUT=$Vout",
+    "INPUT_SATS=$InputSats",
+    "PREV_SCRIPT=$PrevScript",
+    "PAY_SCRIPT=$PayScript",
+    "PAY_SATS=$PaySats",
+    "CHANGE_SCRIPT=$ChangeScript",
+    "CHANGE_SATS=$ChangeSats"
+)
+
+if (-not $OmitUnlockSecret) {
+    $cmdLines += "UNLOCK_SECRET=$UnlockSecret"
+}
+
+$cmdLines += "SIGN"
+
+Write-Host ""
+Write-Host "--- GENERATED WALLET COMMAND ---"
+foreach ($line in $cmdLines) {
+    Write-Host $line
+}
+Write-Host ""
+
+$fee = [int64]$InputSats - [int64]$PaySats - [int64]$ChangeSats
+
+Write-Host "--- LOCAL AMOUNT SUMMARY ---"
+Write-Host "INPUT_SATS=$InputSats"
+Write-Host "PAY_SATS=$PaySats"
+Write-Host "CHANGE_SATS=$ChangeSats"
+Write-Host "FEE_SATS=$fee"
+Write-Host ""
+
+try {
+    if ($script:sp -and $script:sp.IsOpen) {
+        $script:sp.Close()
+    }
+    if ($script:sp) {
+        $script:sp.Dispose()
+    }
+} catch {}
+
+$sp = New-Object System.IO.Ports.SerialPort $Port, 115200, None, 8, One
+$sp.DtrEnable = $false
+$sp.RtsEnable = $false
+$sp.ReadTimeout = 500
+$sp.WriteTimeout = 2000
+
+try {
+    Write-Host "--- OPEN SERIAL $Port ---"
+    $sp.Open()
+
+    Start-Sleep -Seconds 2
+    $startup = $sp.ReadExisting()
+
+    if ($startup.Length -gt 0) {
+        Write-Host ""
+        Write-Host "--- UART STARTUP ---"
+        Write-Host $startup
+    }
+
+    Write-Host ""
+    Write-Host "--- SEND SIGN COMMAND LINE BY LINE ---"
+
+    foreach ($line in $cmdLines) {
+        Write-Host ">> $line"
+        $sp.Write($line + "`r`n")
+        Start-Sleep -Milliseconds 80
+    }
+
+    Write-Host ""
+    Write-Host "--- WALLET RESPONSE ---"
+
+    $out = ""
+    $deadline = [DateTime]::UtcNow.AddSeconds(60)
+
+    while ([DateTime]::UtcNow -lt $deadline) {
+        Start-Sleep -Milliseconds 200
+        $chunk = $sp.ReadExisting()
+
+        if ($chunk.Length -gt 0) {
+            $out += $chunk
+            Write-Host $chunk
+        }
+
+        if ($out -match "RAW_TX=" -or $out -match "ERR ") {
+            break
+        }
+    }
+
+    Start-Sleep -Seconds 1
+    $tail = $sp.ReadExisting()
+    if ($tail.Length -gt 0) {
+        $out += $tail
+        Write-Host $tail
+    }
+
+    if ($out -match "ERR [A-Z]+ -?\d+") {
+        Write-Host ""
+        Write-Host "--- WALLET ERROR ---"
+        $err = [regex]::Match($out, "ERR [A-Z]+ -?\d+").Value
+        Write-Host $err
+        Write-Host ""
+        Write-Host "HOST_TX_GENERATOR_FAIL"
+        exit 2
+    }
+
+    $m = [regex]::Match($out, "RAW_TX=([0-9a-fA-F]+)")
+    if (-not $m.Success) {
+        Write-Host ""
+        Write-Host "--- FULL CAPTURED WALLET RESPONSE ---"
+        Write-Host $out
+        Write-Host ""
+        Write-Host "HOST_TX_GENERATOR_FAIL"
+        throw "No RAW_TX found in wallet response"
+    }
+
+    $raw = $m.Groups[1].Value
+
+    Write-Host ""
+    Write-Host "--- RAW TX EXTRACTED ---"
+    Write-Host $raw
+    Write-Host ""
+
+    if ($RawTxOutFile -ne "") {
+        Set-Content -Path $RawTxOutFile -Value $raw -Encoding ascii
+        Write-Host "RAW_TX_WRITTEN_TO=$RawTxOutFile"
+        Write-Host ""
+    }
+
+    Write-Host "HOST_TX_GENERATOR_PASS"
+}
+finally {
+    if ($sp.IsOpen) {
+        $sp.Close()
+    }
+    $sp.Dispose()
+}

@@ -1,0 +1,376 @@
+param(
+    [string]$BitcoinCli = "C:\Program Files\Bitcoin\daemon\bitcoin-cli.exe",
+    [string]$Wallet = "stm32-host-live",
+    [string]$Port = "COM3",
+    [uint64]$PaySats = 60000,
+    [uint64]$ChangeSats = 30000,
+    [uint64]$FundingSats = 100000,
+    [string]$RawTxOutFile = ".\tools\last_raw_tx.txt"
+)
+
+$ErrorActionPreference = "Stop"
+
+$walletArg = "-rpcwallet=$Wallet"
+
+$stm32Addr = "mrCDrCybB6J1vRfbwM5hemdJz73FwDBC8r"
+$ownScript = "76a914751e76e8199196d454941c45d1b3a323f1433bd688ac"
+
+$allowedPayScript = "76a914f2124d94cabdb95d49479627cbbe5d7be609f73888ac"
+$allowedPayAddress = "n3aukCHFzTvMJthGo52TkNFmerwqf4wGFH"
+
+function Invoke-Btc {
+    param(
+        [string[]]$ArgsList,
+        [string]$Label = ""
+    )
+
+    if ($Label.Length -gt 0) {
+        Write-Host ""
+        Write-Host "--- $Label ---"
+    }
+
+    Write-Host ("bitcoin-cli " + ($ArgsList -join " "))
+
+    $out = & $BitcoinCli @ArgsList 2>&1
+    $code = $LASTEXITCODE
+
+    if ($code -ne 0) {
+        Write-Host ""
+        Write-Host "BITCOIN_CLI_FAILED"
+        Write-Host ("COMMAND=bitcoin-cli " + ($ArgsList -join " "))
+        Write-Host $out
+        throw "bitcoin-cli failed with exit code $code"
+    }
+
+    return $out
+}
+
+function Convert-TxidToLittleEndianHex {
+    param([string]$Txid)
+
+    if ($Txid.Length -ne 64) {
+        throw "TXID must be 64 hex chars, got length $($Txid.Length): $Txid"
+    }
+
+    $pairs = @()
+
+    for ($i = 0; $i -lt $Txid.Length; $i += 2) {
+        $pairs += $Txid.Substring($i, 2)
+    }
+
+    [array]::Reverse($pairs)
+
+    return ($pairs -join "")
+}
+
+function Assert-EqualString {
+    param(
+        [string]$Name,
+        [string]$Actual,
+        [string]$Expected
+    )
+
+    if ($Actual -ne $Expected) {
+        throw "$Name mismatch. Expected $Expected, got $Actual"
+    }
+}
+
+function Assert-EqualDecimal {
+    param(
+        [string]$Name,
+        [decimal]$Actual,
+        [decimal]$Expected
+    )
+
+    if ($Actual -ne $Expected) {
+        throw "$Name mismatch. Expected $Expected, got $Actual"
+    }
+}
+
+Write-Host ""
+Write-Host "============================================================"
+Write-Host " STM32 BITCOIN HARDWARE WALLET REGTEST FULL LOOP"
+Write-Host "============================================================"
+Write-Host "Wallet:        $Wallet"
+Write-Host "Serial Port:   $Port"
+Write-Host "Funding sats:  $FundingSats"
+Write-Host "Pay sats:      $PaySats"
+Write-Host "Change sats:   $ChangeSats"
+Write-Host "Expected fee:  $($FundingSats - $PaySats - $ChangeSats)"
+Write-Host ""
+
+if (-not (Test-Path $BitcoinCli)) {
+    throw "bitcoin-cli not found: $BitcoinCli"
+}
+
+if (-not (Test-Path ".\tools\wallet_generate_tx_command.ps1")) {
+    throw "Missing .\tools\wallet_generate_tx_command.ps1"
+}
+
+if ($FundingSats -ne ($PaySats + $ChangeSats + 10000)) {
+    throw "This firmware policy/demo expects fee=10000 sats. Funding=$FundingSats Pay=$PaySats Change=$ChangeSats"
+}
+
+# --------------------------------------------------------------------
+# 1. Check node
+# --------------------------------------------------------------------
+
+$chainInfo = Invoke-Btc -ArgsList @("-regtest", "getblockchaininfo") -Label "CHECK REGTEST NODE"
+$chainJson = $chainInfo | ConvertFrom-Json
+
+Assert-EqualString -Name "chain" -Actual $chainJson.chain -Expected "regtest"
+
+Write-Host "REGTEST_NODE_OK height=$($chainJson.blocks)"
+
+# --------------------------------------------------------------------
+# 2. Create/load wallet
+# --------------------------------------------------------------------
+
+Write-Host ""
+Write-Host "--- CREATE OR LOAD WALLET ---"
+
+$loadedWallets = Invoke-Btc -ArgsList @("-regtest", "listwallets") | ConvertFrom-Json
+
+if ($loadedWallets -contains $Wallet) {
+    Write-Host "Wallet already loaded: $Wallet"
+} else {
+    $walletDir = Invoke-Btc -ArgsList @("-regtest", "listwalletdir") | ConvertFrom-Json
+    $walletExists = $false
+
+    foreach ($w in $walletDir.wallets) {
+        if ($w.name -eq $Wallet) {
+            $walletExists = $true
+        }
+    }
+
+    if ($walletExists) {
+        Invoke-Btc -ArgsList @("-regtest", "loadwallet", $Wallet) | Write-Host
+    } else {
+        Invoke-Btc -ArgsList @("-regtest", "createwallet", $Wallet) | Write-Host
+    }
+}
+
+$walletInfo = Invoke-Btc -ArgsList @("-regtest", $walletArg, "getwalletinfo") | ConvertFrom-Json
+Assert-EqualString -Name "walletname" -Actual $walletInfo.walletname -Expected $Wallet
+
+Write-Host "WALLET_OK $Wallet"
+
+# --------------------------------------------------------------------
+# 3. Ensure spendable funds
+# --------------------------------------------------------------------
+
+Write-Host ""
+Write-Host "--- ENSURE SPENDABLE FUNDS ---"
+
+$balances = Invoke-Btc -ArgsList @("-regtest", $walletArg, "getbalances") | ConvertFrom-Json
+$trusted = [decimal]$balances.mine.trusted
+
+Write-Host "TRUSTED_BALANCE_BEFORE=$trusted"
+
+if ($trusted -lt 1.0) {
+    Write-Host "Mining 101 blocks to create mature regtest funds..."
+
+    $mineAddr = Invoke-Btc -ArgsList @("-regtest", $walletArg, "getnewaddress", "initial-mining", "bech32")
+    $mineAddr = ($mineAddr | Out-String).Trim()
+
+    Invoke-Btc -ArgsList @("-regtest", "generatetoaddress", "101", $mineAddr) | Write-Host
+
+    $balances = Invoke-Btc -ArgsList @("-regtest", $walletArg, "getbalances") | ConvertFrom-Json
+    $trusted = [decimal]$balances.mine.trusted
+}
+
+Write-Host "TRUSTED_BALANCE_READY=$trusted"
+
+if ($trusted -le 0) {
+    throw "Wallet still has no trusted funds"
+}
+
+# --------------------------------------------------------------------
+# 4. Fund STM32 wallet address
+# --------------------------------------------------------------------
+
+Write-Host ""
+Write-Host "--- FUND STM32 ADDRESS ---"
+Write-Host "STM32_ADDR=$stm32Addr"
+Write-Host "STM32_SCRIPT=$ownScript"
+
+$fundAmountBtc = [decimal]$FundingSats / 100000000
+$fundAmountText = "{0:0.00000000}" -f $fundAmountBtc
+
+$fundTxid = Invoke-Btc -ArgsList @(
+    "-regtest",
+    $walletArg,
+    "-named",
+    "sendtoaddress",
+    "address=$stm32Addr",
+    "amount=$fundAmountText",
+    "fee_rate=1"
+)
+
+$fundTxid = ($fundTxid | Out-String).Trim()
+
+if ($fundTxid.Length -ne 64) {
+    throw "Invalid funding txid: $fundTxid"
+}
+
+Write-Host "FUND_TXID=$fundTxid"
+
+# Mine funding transaction so STM32 spends a confirmed UTXO.
+$confirmAddr = Invoke-Btc -ArgsList @("-regtest", $walletArg, "getnewaddress", "confirm-stm32-funding", "bech32")
+$confirmAddr = ($confirmAddr | Out-String).Trim()
+
+Invoke-Btc -ArgsList @("-regtest", "generatetoaddress", "1", $confirmAddr) | Write-Host
+
+# --------------------------------------------------------------------
+# 5. Extract fresh UTXO details
+# --------------------------------------------------------------------
+
+Write-Host ""
+Write-Host "--- EXTRACT FRESH STM32 UTXO ---"
+
+$fundInfo = Invoke-Btc -ArgsList @("-regtest", $walletArg, "gettransaction", $fundTxid, "true") | ConvertFrom-Json
+$fundHex = $fundInfo.hex
+
+if ($null -eq $fundHex -or $fundHex.Length -eq 0) {
+    throw "Could not get funding transaction hex"
+}
+
+$fundDecoded = Invoke-Btc -ArgsList @("-regtest", "decoderawtransaction", $fundHex) | ConvertFrom-Json
+
+$freshOut = $fundDecoded.vout | Where-Object {
+    $_.scriptPubKey.hex -eq $ownScript
+} | Select-Object -First 1
+
+if ($null -eq $freshOut) {
+    throw "Could not find STM32 output in funding transaction"
+}
+
+$freshVout = [uint32]$freshOut.n
+$freshInputSats = [uint64]([decimal]$freshOut.value * 100000000)
+$freshTxidLe = Convert-TxidToLittleEndianHex $fundTxid
+
+Write-Host "FRESH_TXID=$fundTxid"
+Write-Host "FRESH_TXID_LE=$freshTxidLe"
+Write-Host "FRESH_VOUT=$freshVout"
+Write-Host "FRESH_INPUT_SATS=$freshInputSats"
+
+if ($freshInputSats -ne $FundingSats) {
+    throw "Funding output sats mismatch. Expected $FundingSats, got $freshInputSats"
+}
+
+# --------------------------------------------------------------------
+# 6. Ask STM32 to sign
+# --------------------------------------------------------------------
+
+Write-Host ""
+Write-Host "--- ASK STM32 TO SIGN FRESH UTXO ---"
+
+.\tools\wallet_generate_tx_command.ps1 `
+    -Port $Port `
+    -TxidLe $freshTxidLe `
+    -Vout $freshVout `
+    -InputSats $freshInputSats `
+    -PaySats $PaySats `
+    -ChangeSats $ChangeSats `
+    -RawTxOutFile $RawTxOutFile
+
+if ($LASTEXITCODE -ne 0) {
+    throw "STM32 wallet_generate_tx_command.ps1 failed"
+}
+
+if (-not (Test-Path $RawTxOutFile)) {
+    throw "Raw tx output file was not created: $RawTxOutFile"
+}
+
+$raw = (Get-Content $RawTxOutFile -Raw).Trim()
+
+if ($raw.Length -eq 0) {
+    throw "Raw tx output file is empty: $RawTxOutFile"
+}
+
+Write-Host "STM32_RAW_TX_READY length=$($raw.Length)"
+
+# --------------------------------------------------------------------
+# 7. Decode and broadcast STM32 transaction
+# --------------------------------------------------------------------
+
+Write-Host ""
+Write-Host "--- DECODE STM32 RAW TX ---"
+
+$stm32Decoded = Invoke-Btc -ArgsList @("-regtest", "decoderawtransaction", $raw) | ConvertFrom-Json
+
+Write-Host "STM32_TXID_PRE_BROADCAST=$($stm32Decoded.txid)"
+
+if ($stm32Decoded.vin.Count -ne 1) {
+    throw "Expected 1 input, got $($stm32Decoded.vin.Count)"
+}
+
+if ($stm32Decoded.vout.Count -ne 2) {
+    throw "Expected 2 outputs, got $($stm32Decoded.vout.Count)"
+}
+
+Assert-EqualString -Name "vin.txid" -Actual $stm32Decoded.vin[0].txid -Expected $fundTxid
+
+if ([uint32]$stm32Decoded.vin[0].vout -ne $freshVout) {
+    throw "vin.vout mismatch. Expected $freshVout, got $($stm32Decoded.vin[0].vout)"
+}
+
+$payBtc = [decimal]$PaySats / 100000000
+$changeBtc = [decimal]$ChangeSats / 100000000
+
+Assert-EqualDecimal -Name "pay value" -Actual ([decimal]$stm32Decoded.vout[0].value) -Expected $payBtc
+Assert-EqualString -Name "pay script" -Actual $stm32Decoded.vout[0].scriptPubKey.hex -Expected $allowedPayScript
+
+Assert-EqualDecimal -Name "change value" -Actual ([decimal]$stm32Decoded.vout[1].value) -Expected $changeBtc
+Assert-EqualString -Name "change script" -Actual $stm32Decoded.vout[1].scriptPubKey.hex -Expected $ownScript
+
+Write-Host ""
+Write-Host "--- BROADCAST STM32 RAW TX ---"
+
+$stm32Txid = Invoke-Btc -ArgsList @("-regtest", "sendrawtransaction", $raw)
+$stm32Txid = ($stm32Txid | Out-String).Trim()
+
+if ($stm32Txid.Length -ne 64) {
+    throw "Invalid STM32 txid after broadcast: $stm32Txid"
+}
+
+Write-Host "STM32_BROADCAST_TXID=$stm32Txid"
+
+# --------------------------------------------------------------------
+# 8. Mine and verify outputs
+# --------------------------------------------------------------------
+
+Write-Host ""
+Write-Host "--- MINE STM32 TX ---"
+
+$mineAddr2 = Invoke-Btc -ArgsList @("-regtest", $walletArg, "getnewaddress", "mine-stm32-spend", "bech32")
+$mineAddr2 = ($mineAddr2 | Out-String).Trim()
+
+Invoke-Btc -ArgsList @("-regtest", "generatetoaddress", "1", $mineAddr2) | Write-Host
+
+Write-Host ""
+Write-Host "--- VERIFY STM32 TX OUTPUTS ---"
+
+$out0 = Invoke-Btc -ArgsList @("-regtest", "gettxout", $stm32Txid, "0") | ConvertFrom-Json
+$out1 = Invoke-Btc -ArgsList @("-regtest", "gettxout", $stm32Txid, "1") | ConvertFrom-Json
+
+if ($null -eq $out0) {
+    throw "gettxout output 0 missing"
+}
+
+if ($null -eq $out1) {
+    throw "gettxout output 1 missing"
+}
+
+Assert-EqualDecimal -Name "confirmed output 0 value" -Actual ([decimal]$out0.value) -Expected $payBtc
+Assert-EqualString -Name "confirmed output 0 script" -Actual $out0.scriptPubKey.hex -Expected $allowedPayScript
+
+Assert-EqualDecimal -Name "confirmed output 1 value" -Actual ([decimal]$out1.value) -Expected $changeBtc
+Assert-EqualString -Name "confirmed output 1 script" -Actual $out1.scriptPubKey.hex -Expected $ownScript
+
+Write-Host ""
+Write-Host "PAY_OUTPUT_ADDR=$allowedPayAddress"
+Write-Host "CHANGE_OUTPUT_ADDR=$stm32Addr"
+Write-Host "STM32_TXID=$stm32Txid"
+Write-Host ""
+Write-Host "STM32_REGTEST_FULL_LOOP_PASS"

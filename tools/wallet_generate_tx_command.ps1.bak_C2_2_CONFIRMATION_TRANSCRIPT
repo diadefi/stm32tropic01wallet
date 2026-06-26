@@ -1,0 +1,265 @@
+param(
+    [string]$Port = "COM3",
+    [int]$Baud = 115200,
+
+    [string]$Network = "REGTEST",
+    [string]$TxidLe = "09f6ce894fc3f8c5de72f787386039a54eeb2aded45b4087fc0992e40023a632",
+    [int]$Vout = 1,
+    [long]$InputSats = 100000,
+
+    [string]$PrevScript = "76a914751e76e8199196d454941c45d1b3a323f1433bd688ac",
+    [string]$PayScript = "76a914f2124d94cabdb95d49479627cbbe5d7be609f73888ac",
+    [long]$PaySats = 60000,
+    [string]$ChangeScript = "76a914751e76e8199196d454941c45d1b3a323f1433bd688ac",
+    [long]$ChangeSats = 30000,
+
+    [string]$UnlockSecret = "mvp-regtest-unlock",
+    [switch]$OmitUnlockSecret,
+
+    [string]$RawTxOutFile = "",
+    [int]$TimeoutSeconds = 180,
+    [int]$SyncTimeoutSeconds = 180
+)
+
+$ErrorActionPreference = "Stop"
+
+function Read-SerialAvailable {
+    param(
+        [System.IO.Ports.SerialPort]$Serial
+    )
+
+    $s = ""
+
+    try {
+        while ($Serial.BytesToRead -gt 0) {
+            $s += $Serial.ReadExisting()
+            Start-Sleep -Milliseconds 20
+        }
+    } catch {
+    }
+
+    return $s
+}
+
+function Read-SerialForDuration {
+    param(
+        [System.IO.Ports.SerialPort]$Serial,
+        [int]$Milliseconds
+    )
+
+    $buf = ""
+    $deadline = [DateTime]::UtcNow.AddMilliseconds($Milliseconds)
+
+    while ([DateTime]::UtcNow -lt $deadline) {
+        $buf += Read-SerialAvailable -Serial $Serial
+        Start-Sleep -Milliseconds 50
+    }
+
+    return $buf
+}
+
+function Read-UntilFreshVersionReady {
+    param(
+        [System.IO.Ports.SerialPort]$Serial,
+        [int]$TimeoutSeconds
+    )
+
+    $buf = ""
+    $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
+
+    while ([DateTime]::UtcNow -lt $deadline) {
+        $buf += Read-SerialAvailable -Serial $Serial
+
+        if ($buf -match "OK VERSION") {
+            $afterVersion = ($buf -split "OK VERSION", 2)[1]
+            if ($afterVersion -match "READY") {
+                return $buf
+            }
+        }
+
+        Start-Sleep -Milliseconds 50
+    }
+
+    throw "UART sync failed: no fresh OK VERSION/READY response"
+}
+
+function Read-UntilCommandResponse {
+    param(
+        [System.IO.Ports.SerialPort]$Serial,
+        [int]$TimeoutSeconds
+    )
+
+    $buf = ""
+    $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
+
+    while ([DateTime]::UtcNow -lt $deadline) {
+        $buf += Read-SerialAvailable -Serial $Serial
+
+        $hasResult = ($buf -match "RAW_TX=[0-9a-fA-F]+") -or ($buf -match "ERR POLICY -?\d+")
+        $hasReady = ($buf -match "READY")
+
+        if ($hasResult -and $hasReady) {
+            return $buf
+        }
+
+        Start-Sleep -Milliseconds 50
+    }
+
+    return $buf
+}
+
+function Build-WalletCommand {
+    $lines = New-Object System.Collections.Generic.List[string]
+
+    $lines.Add("NETWORK=$Network")
+    $lines.Add("TXID_LE=$TxidLe")
+    $lines.Add("VOUT=$Vout")
+    $lines.Add("INPUT_SATS=$InputSats")
+    $lines.Add("PREV_SCRIPT=$PrevScript")
+    $lines.Add("PAY_SCRIPT=$PayScript")
+    $lines.Add("PAY_SATS=$PaySats")
+    $lines.Add("CHANGE_SCRIPT=$ChangeScript")
+    $lines.Add("CHANGE_SATS=$ChangeSats")
+
+    if (-not $OmitUnlockSecret) {
+        $lines.Add("UNLOCK_SECRET=$UnlockSecret")
+    }
+
+    $lines.Add("SIGN")
+
+    return $lines
+}
+
+$serial = $null
+
+try {
+    $fee = $InputSats - $PaySats - $ChangeSats
+    $cmdLines = Build-WalletCommand
+
+    Write-Host ""
+    Write-Host "--- GENERATED WALLET COMMAND ---"
+    foreach ($line in $cmdLines) {
+        Write-Host $line
+    }
+
+    Write-Host ""
+    Write-Host "--- LOCAL AMOUNT SUMMARY ---"
+    Write-Host "INPUT_SATS=$InputSats"
+    Write-Host "PAY_SATS=$PaySats"
+    Write-Host "CHANGE_SATS=$ChangeSats"
+    Write-Host "FEE_SATS=$fee"
+
+    Write-Host ""
+    Write-Host "--- OPEN SERIAL $Port ---"
+
+    $serial = New-Object System.IO.Ports.SerialPort
+    $serial.PortName = $Port
+    $serial.BaudRate = $Baud
+    $serial.Parity = [System.IO.Ports.Parity]::None
+    $serial.DataBits = 8
+    $serial.StopBits = [System.IO.Ports.StopBits]::One
+    $serial.Handshake = [System.IO.Ports.Handshake]::None
+    $serial.ReadTimeout = 200
+    $serial.WriteTimeout = 2000
+    $serial.NewLine = "`n"
+    $serial.DtrEnable = $true
+    $serial.RtsEnable = $true
+
+    $serial.Open()
+    Start-Sleep -Milliseconds 400
+
+    Write-Host ""
+    Write-Host "--- DRAIN STALE STARTUP OUTPUT ---"
+
+    $startup = Read-SerialForDuration -Serial $serial -Milliseconds 1500
+    if ($startup.Length -gt 0) {
+        Write-Host $startup
+    } else {
+        Write-Host "(none)"
+    }
+
+    Write-Host ""
+    Write-Host "--- FORCE FRESH UART SYNC WITH VERSION ---"
+
+    $serial.DiscardInBuffer()
+    $serial.WriteLine("VERSION")
+    $sync = Read-UntilFreshVersionReady -Serial $serial -TimeoutSeconds $SyncTimeoutSeconds
+    Write-Host $sync
+
+    Write-Host ""
+    Write-Host "--- CLEAR BUFFER BEFORE SIGN COMMAND ---"
+
+    $serial.DiscardInBuffer()
+    Start-Sleep -Milliseconds 100
+    $postClear = Read-SerialForDuration -Serial $serial -Milliseconds 300
+
+    if ($postClear.Length -gt 0) {
+        Write-Host "POST_CLEAR_STALE_BYTES_DISCARDED"
+        Write-Host $postClear
+        $serial.DiscardInBuffer()
+    } else {
+        Write-Host "POST_CLEAR_OK"
+    }
+
+    Write-Host ""
+    Write-Host "--- SEND SIGN COMMAND LINE BY LINE ---"
+
+    foreach ($line in $cmdLines) {
+        Write-Host ">> $line"
+        $serial.WriteLine($line)
+        Start-Sleep -Milliseconds 80
+    }
+
+    Write-Host ""
+    Write-Host "--- WALLET RESPONSE ---"
+
+    $response = Read-UntilCommandResponse -Serial $serial -TimeoutSeconds $TimeoutSeconds
+    Write-Host $response
+
+    if ($response -match "(ERR POLICY -?\d+)") {
+        $err = $Matches[1]
+
+        Write-Host ""
+        Write-Host "--- WALLET ERROR ---"
+        Write-Host $err
+        Write-Host ""
+        Write-Host "HOST_TX_GENERATOR_FAIL"
+
+        # Expected wallet policy rejections should be machine-readable,
+        # not PowerShell stack traces.
+        exit 2
+    }
+
+    $rawMatch = [regex]::Match($response, "RAW_TX=([0-9a-fA-F]+)")
+
+    if (-not $rawMatch.Success) {
+        Write-Host ""
+        Write-Host "--- FULL POST-SIGN CAPTURED WALLET RESPONSE ---"
+        Write-Host $response
+        Write-Host ""
+        Write-Host "HOST_TX_GENERATOR_FAIL"
+
+        throw "No RAW_TX found in post-SIGN wallet response"
+    }
+
+    $rawTx = $rawMatch.Groups[1].Value
+
+    if ($RawTxOutFile -ne "") {
+        Set-Content -Path $RawTxOutFile -Value $rawTx -Encoding ascii
+        Write-Host ""
+        Write-Host "RAW_TX_OUT_FILE=$RawTxOutFile"
+    }
+
+    Write-Host ""
+    Write-Host "RAW_TX=$rawTx"
+    Write-Host "HOST_TX_GENERATOR_PASS"
+}
+finally {
+    if ($serial -ne $null) {
+        if ($serial.IsOpen) {
+            $serial.Close()
+        }
+        $serial.Dispose()
+    }
+}
+

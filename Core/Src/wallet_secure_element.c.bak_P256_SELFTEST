@@ -1,0 +1,191 @@
+#include "wallet_secure_element.h"
+
+#include "main.h"
+#include "libtropic.h"
+#include "libtropic_port_stm32u5xx.h"
+
+#include <stdint.h>
+#include <string.h>
+
+/*
+ * Real TROPIC01 smoke-check layer.
+ *
+ * This does NOT make TROPIC01 do Bitcoin secp256k1 signing yet.
+ * It proves the STM32 can talk to TROPIC01 through libtropic before
+ * wallet_key_provider.c releases the current regtest dev key.
+ */
+
+extern RNG_HandleTypeDef hrng;
+
+volatile int wallet_secure_element_init_ret = 999;
+volatile int wallet_secure_element_authorize_ret = 999;
+volatile uint32_t wallet_secure_element_auth_count = 0;
+
+volatile int wallet_secure_element_lt_init_ret = 999;
+volatile int wallet_secure_element_lt_mode_ret = 999;
+volatile int wallet_secure_element_lt_chip_id_ret = 999;
+volatile int wallet_secure_element_lt_deinit_ret = 999;
+volatile uint32_t wallet_secure_element_mode_value = 0;
+volatile uint32_t wallet_secure_element_initialized = 0;
+
+volatile uint32_t wallet_secure_element_init_attempts = 0;
+volatile int wallet_secure_element_last_attempt_ret = 999;
+
+
+static lt_handle_t wallet_secure_element_handle;
+static lt_dev_stm32u5xx_t wallet_secure_element_device;
+
+static void wallet_secure_element_configure_device(void)
+{
+    memset(&wallet_secure_element_device, 0, sizeof(wallet_secure_element_device));
+
+    /*
+     * TROPIC01 wiring:
+     *   SPI1 SCK  = PA5
+     *   SPI1 MISO = PA6
+     *   SPI1 MOSI = PA7
+     *   TROPIC CS = PD14
+     */
+    wallet_secure_element_device.spi_instance = SPI1;
+    wallet_secure_element_device.baudrate_prescaler = SPI_BAUDRATEPRESCALER_64;
+    wallet_secure_element_device.spi_cs_gpio_bank = GPIOD;
+    wallet_secure_element_device.spi_cs_gpio_pin = GPIO_PIN_14;
+    wallet_secure_element_device.rng_handle = &hrng;
+
+    /*
+     * Critical:
+     * libtropic's STM32 port reads h->l2.device inside lt_port_init().
+     * If this is not set before lt_init(), the board HardFaults.
+     */
+    wallet_secure_element_handle.l2.device = &wallet_secure_element_device;
+}
+
+
+
+
+int wallet_secure_element_init(void)
+{
+    lt_tr01_mode_t mode;
+    struct lt_chip_id_t chip_id;
+
+    const uint32_t max_attempts = 8U;
+
+    wallet_secure_element_init_ret = 999;
+    wallet_secure_element_authorize_ret = 999;
+    wallet_secure_element_auth_count = 0;
+
+    wallet_secure_element_lt_init_ret = 999;
+    wallet_secure_element_lt_mode_ret = 999;
+    wallet_secure_element_lt_chip_id_ret = 999;
+    wallet_secure_element_lt_deinit_ret = 999;
+    wallet_secure_element_mode_value = 0;
+    wallet_secure_element_initialized = 0;
+
+    wallet_secure_element_init_attempts = 0;
+    wallet_secure_element_last_attempt_ret = 999;
+
+    /*
+     * Give TROPIC01 time after MCU reset / debugger attach / COM-port toggling.
+     */
+    HAL_Delay(250);
+
+    for (uint32_t attempt = 1U; attempt <= max_attempts; attempt++)
+    {
+        wallet_secure_element_init_attempts = attempt;
+        wallet_secure_element_last_attempt_ret = 999;
+
+        memset(&wallet_secure_element_handle, 0, sizeof(wallet_secure_element_handle));
+        memset(&chip_id, 0, sizeof(chip_id));
+        memset(&mode, 0, sizeof(mode));
+
+        wallet_secure_element_configure_device();
+
+        /*
+         * Extra settle time between attempts.
+         */
+        HAL_Delay(100);
+
+        wallet_secure_element_lt_init_ret =
+            (int)lt_init(&wallet_secure_element_handle);
+
+        if (wallet_secure_element_lt_init_ret != (int)LT_OK)
+        {
+            wallet_secure_element_last_attempt_ret = -100;
+            wallet_secure_element_init_ret = -100;
+            HAL_Delay(200);
+            continue;
+        }
+
+        wallet_secure_element_lt_mode_ret =
+            (int)lt_get_tr01_mode(&wallet_secure_element_handle, &mode);
+
+        if (wallet_secure_element_lt_mode_ret != (int)LT_OK)
+        {
+            wallet_secure_element_lt_deinit_ret =
+                (int)lt_deinit(&wallet_secure_element_handle);
+
+            wallet_secure_element_last_attempt_ret = -101;
+            wallet_secure_element_init_ret = -101;
+            HAL_Delay(200);
+            continue;
+        }
+
+        wallet_secure_element_mode_value = (uint32_t)mode;
+
+        wallet_secure_element_lt_chip_id_ret =
+            (int)lt_get_info_chip_id(&wallet_secure_element_handle, &chip_id);
+
+        if (wallet_secure_element_lt_chip_id_ret != (int)LT_OK)
+        {
+            wallet_secure_element_lt_deinit_ret =
+                (int)lt_deinit(&wallet_secure_element_handle);
+
+            wallet_secure_element_last_attempt_ret = -102;
+            wallet_secure_element_init_ret = -102;
+            HAL_Delay(200);
+            continue;
+        }
+
+        wallet_secure_element_initialized = 1;
+        wallet_secure_element_last_attempt_ret = 0;
+        wallet_secure_element_init_ret = 0;
+
+        return 0;
+    }
+
+    return wallet_secure_element_init_ret;
+}
+
+
+
+
+
+
+int wallet_secure_element_authorize_key_use(void)
+{
+    lt_tr01_mode_t mode;
+
+    if (wallet_secure_element_initialized != 1U)
+    {
+        wallet_secure_element_authorize_ret = -1;
+        return -1;
+    }
+
+    memset(&mode, 0, sizeof(mode));
+
+    wallet_secure_element_lt_mode_ret =
+        (int)lt_get_tr01_mode(&wallet_secure_element_handle, &mode);
+
+    if (wallet_secure_element_lt_mode_ret != (int)LT_OK)
+    {
+        wallet_secure_element_authorize_ret = -2;
+        return -2;
+    }
+
+    wallet_secure_element_mode_value = (uint32_t)mode;
+
+    wallet_secure_element_auth_count++;
+    wallet_secure_element_authorize_ret = 0;
+
+    return 0;
+}

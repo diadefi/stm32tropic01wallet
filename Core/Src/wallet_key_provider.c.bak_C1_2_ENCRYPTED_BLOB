@@ -1,0 +1,117 @@
+#include "wallet_key_provider.h"
+#include "wallet_build_config.h"
+#include "wallet_secure_element.h"
+#include <stddef.h>
+#include <stdint.h>
+#include <string.h>
+
+#ifndef WALLET_ENABLE_DEV_PRIVATE_KEY
+#error "WALLET_ENABLE_DEV_PRIVATE_KEY must be defined in wallet_build_config.h"
+#endif
+
+#if !WALLET_ENABLE_DEV_PRIVATE_KEY
+#error "Dev private key path is disabled. Implement TROPIC-backed signing/key path before building."
+#endif
+
+
+
+/*
+ * TEMPORARY REGTEST-ONLY DEV KEY.
+ *
+ * Private key = 1.
+ * Never use this on mainnet, testnet, signet, or with real funds.
+ *
+ * Later this file becomes the TROPIC01-backed key provider.
+ */
+static const uint8_t WALLET_DEV_PRIVKEY_BYTES[WALLET_KEY_PROVIDER_PRIVKEY_BYTES_LEN] =
+{
+    0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x01
+};
+
+
+
+int wallet_key_provider_get_private_key_bytes(uint8_t *out_key,
+                                               size_t out_key_size)
+{
+    int se_ret = 0;
+
+    if (out_key == NULL)
+    {
+        return -1;
+    }
+
+    if (out_key_size < WALLET_KEY_PROVIDER_PRIVKEY_BYTES_LEN)
+    {
+        return -2;
+    }
+
+    /*
+     * Secure-element authorization gate.
+     *
+     * Today this calls a dev stub.
+     * Later this calls real TROPIC01 logic.
+     */
+    se_ret = wallet_secure_element_authorize_key_use();
+
+    if (se_ret != 0)
+    {
+        memset(out_key, 0, out_key_size);
+        return -10;
+    }
+
+    memset(out_key, 0, out_key_size);
+    memcpy(out_key,
+           WALLET_DEV_PRIVKEY_BYTES,
+           WALLET_KEY_PROVIDER_PRIVKEY_BYTES_LEN);
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+int wallet_key_provider_get_private_key_hex(char *out_hex,
+                                            size_t out_hex_size)
+{
+    static const char hex_chars[] = "0123456789abcdef";
+
+    if (out_hex == NULL)
+    {
+        return -1;
+    }
+
+    if (out_hex_size < (WALLET_KEY_PROVIDER_PRIVKEY_HEX_LEN + 1U))
+    {
+        return -2;
+    }
+
+    memset(out_hex, 0, out_hex_size);
+
+    for (uint32_t i = 0; i < WALLET_KEY_PROVIDER_PRIVKEY_BYTES_LEN; i++)
+    {
+        out_hex[i * 2U] =
+            hex_chars[(WALLET_DEV_PRIVKEY_BYTES[i] >> 4) & 0x0FU];
+
+        out_hex[(i * 2U) + 1U] =
+            hex_chars[WALLET_DEV_PRIVKEY_BYTES[i] & 0x0FU];
+    }
+
+    out_hex[WALLET_KEY_PROVIDER_PRIVKEY_HEX_LEN] = '\0';
+
+    return 0;
+}
+

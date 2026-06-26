@@ -1,0 +1,235 @@
+param(
+    [string]$Port = "COM3",
+    [int]$Baud = 115200,
+    [int]$TimeoutSeconds = 20
+)
+
+$ErrorActionPreference = "Stop"
+
+function Read-Available {
+    param([System.IO.Ports.SerialPort]$Serial)
+
+    $s = ""
+    try {
+        while ($Serial.BytesToRead -gt 0) {
+            $s += $Serial.ReadExisting()
+            Start-Sleep -Milliseconds 20
+        }
+    } catch {
+    }
+    return $s
+}
+
+function Drain-Stale {
+    param([System.IO.Ports.SerialPort]$Serial)
+
+    Start-Sleep -Milliseconds 250
+    $null = Read-Available -Serial $Serial
+    $Serial.DiscardInBuffer()
+    Start-Sleep -Milliseconds 100
+    $null = Read-Available -Serial $Serial
+    $Serial.DiscardInBuffer()
+}
+
+function Send-CommandLines {
+    param(
+        [System.IO.Ports.SerialPort]$Serial,
+        [string[]]$Lines,
+        [string]$RequiredPattern,
+        [int]$TimeoutSeconds
+    )
+
+    Drain-Stale -Serial $Serial
+
+    foreach ($line in $Lines) {
+        Write-Host ">> $line"
+        $Serial.WriteLine($line)
+        Start-Sleep -Milliseconds 80
+    }
+
+    $buf = ""
+    $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
+
+    while ([DateTime]::UtcNow -lt $deadline) {
+        $buf += Read-Available -Serial $Serial
+
+        $hasRequired = ($buf -match $RequiredPattern)
+        $hasReady = ($buf -match "READY")
+
+        if ($hasRequired -and $hasReady) {
+            return $buf
+        }
+
+        Start-Sleep -Milliseconds 50
+    }
+
+    Write-Host ""
+    Write-Host "--- TIMEOUT BUFFER ---"
+    Write-Host $buf
+    throw "Timeout waiting for required response pattern: $RequiredPattern"
+}
+
+function Get-AuthCount {
+    param([string]$Text)
+
+    $m = [regex]::Match($Text, "AUTH_COUNT=(\d+)")
+    if (-not $m.Success) {
+        throw "AUTH_COUNT missing"
+    }
+
+    return [int]$m.Groups[1].Value
+}
+
+function Assert-Contains {
+    param(
+        [string]$Text,
+        [string]$Needle
+    )
+
+    if ($Text -notmatch [regex]::Escape($Needle)) {
+        Write-Host ""
+        Write-Host "--- TEXT THAT FAILED ASSERTION ---"
+        Write-Host $Text
+        throw "Missing expected text: $Needle"
+    }
+}
+
+$validCheck = @(
+    "NETWORK=REGTEST",
+    "TXID_LE=09f6ce894fc3f8c5de72f787386039a54eeb2aded45b4087fc0992e40023a632",
+    "VOUT=1",
+    "INPUT_SATS=100000",
+    "PREV_SCRIPT=76a914751e76e8199196d454941c45d1b3a323f1433bd688ac",
+    "PAY_SCRIPT=76a914f2124d94cabdb95d49479627cbbe5d7be609f73888ac",
+    "PAY_SATS=60000",
+    "CHANGE_SCRIPT=76a914751e76e8199196d454941c45d1b3a323f1433bd688ac",
+    "CHANGE_SATS=30000",
+    "CHECK"
+)
+
+$badPayCheck = @(
+    "NETWORK=REGTEST",
+    "TXID_LE=09f6ce894fc3f8c5de72f787386039a54eeb2aded45b4087fc0992e40023a632",
+    "VOUT=1",
+    "INPUT_SATS=100000",
+    "PREV_SCRIPT=76a914751e76e8199196d454941c45d1b3a323f1433bd688ac",
+    "PAY_SCRIPT=76a914111111111111111111111111111111111111111188ac",
+    "PAY_SATS=60000",
+    "CHANGE_SCRIPT=76a914751e76e8199196d454941c45d1b3a323f1433bd688ac",
+    "CHANGE_SATS=30000",
+    "CHECK"
+)
+
+$serial = $null
+
+try {
+    Write-Host ""
+    Write-Host "============================================================"
+    Write-Host " STM32 DEVICE CHECK/SUMMARY REGRESSION"
+    Write-Host "============================================================"
+    Write-Host "Port: $Port"
+
+    $serial = New-Object System.IO.Ports.SerialPort
+    $serial.PortName = $Port
+    $serial.BaudRate = $Baud
+    $serial.Parity = [System.IO.Ports.Parity]::None
+    $serial.DataBits = 8
+    $serial.StopBits = [System.IO.Ports.StopBits]::One
+    $serial.Handshake = [System.IO.Ports.Handshake]::None
+    $serial.ReadTimeout = 200
+    $serial.WriteTimeout = 2000
+    $serial.NewLine = "`n"
+    $serial.DtrEnable = $true
+    $serial.RtsEnable = $true
+    $serial.Open()
+
+    Start-Sleep -Milliseconds 1500
+    Drain-Stale -Serial $serial
+
+    Write-Host ""
+    Write-Host "--- SEINFO BEFORE CHECK ---"
+    $before = Send-CommandLines `
+        -Serial $serial `
+        -Lines @("SEINFO") `
+        -RequiredPattern "OK SEINFO" `
+        -TimeoutSeconds $TimeoutSeconds
+
+    Write-Host $before
+    $authBefore = Get-AuthCount $before
+
+    Write-Host ""
+    Write-Host "--- VALID CHECK ---"
+    $valid = Send-CommandLines `
+        -Serial $serial `
+        -Lines $validCheck `
+        -RequiredPattern "SUMMARY_BEGIN" `
+        -TimeoutSeconds $TimeoutSeconds
+
+    Write-Host $valid
+
+    Assert-Contains $valid "SUMMARY_BEGIN"
+    Assert-Contains $valid "SUMMARY_VERSION=C2.3_DEVICE_POLICY_SUMMARY"
+    Assert-Contains $valid "SIGNATURE_PRODUCED=0"
+    Assert-Contains $valid "UNLOCK_REQUIRED_FOR_CHECK=0"
+    Assert-Contains $valid "TROPIC_AUTH_REQUIRED_FOR_CHECK=0"
+    Assert-Contains $valid "PAY_SATS=60000"
+    Assert-Contains $valid "CHANGE_SATS=30000"
+    Assert-Contains $valid "FEE_SATS=10000"
+    Assert-Contains $valid "POLICY_DECISION=APPROVED"
+    Assert-Contains $valid "SUMMARY_END"
+
+    if ($valid -match "RAW_TX=") {
+        throw "CHECK must not produce RAW_TX"
+    }
+    Write-Host "VALID_CHECK_RAW_TX_ABSENT_CONFIRMED"
+
+    Write-Host ""
+    Write-Host "--- BAD PAY SCRIPT CHECK ---"
+    $bad = Send-CommandLines `
+        -Serial $serial `
+        -Lines $badPayCheck `
+        -RequiredPattern "SUMMARY_BEGIN" `
+        -TimeoutSeconds $TimeoutSeconds
+
+    Write-Host $bad
+
+    Assert-Contains $bad "SUMMARY_BEGIN"
+    Assert-Contains $bad "POLICY_DECISION=REJECTED"
+    Assert-Contains $bad "DEVICE_ERROR=ERR POLICY -38"
+    if ($bad -match "RAW_TX=") {
+        throw "Rejected CHECK must not produce RAW_TX"
+    }
+    Write-Host "REJECTED_CHECK_RAW_TX_ABSENT_CONFIRMED"
+
+    Write-Host ""
+    Write-Host "--- SEINFO AFTER CHECK ---"
+    $after = Send-CommandLines `
+        -Serial $serial `
+        -Lines @("SEINFO") `
+        -RequiredPattern "OK SEINFO" `
+        -TimeoutSeconds $TimeoutSeconds
+
+    Write-Host $after
+    $authAfter = Get-AuthCount $after
+
+    Write-Host "AUTH_COUNT_BEFORE=$authBefore"
+    Write-Host "AUTH_COUNT_AFTER=$authAfter"
+
+    if ($authBefore -ne $authAfter) {
+        throw "CHECK unexpectedly changed AUTH_COUNT"
+    }
+
+    Write-Host ""
+    Write-Host "DEVICE_CHECK_SUMMARY_REGRESSION_PASS"
+}
+finally {
+    if ($serial -ne $null) {
+        if ($serial.IsOpen) {
+            $serial.Close()
+        }
+        $serial.Dispose()
+    }
+}
+
+
+

@@ -1,0 +1,861 @@
+#include "main.h"
+#include "wallet_uart.h"
+#include "wallet_build_config.h"
+#include "wallet_command.h"
+#include "wallet_debug_test.h"
+#include "wallet_key_provider.h"
+#include "wallet_secure_element.h"
+#include "wallet_policy.h"
+
+#include "psa/crypto.h"
+
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+
+
+/*
+ * C2.0 device identity reporting.
+ *
+ * These are public wallet identity values for the current MVP key.
+ * They are safe to expose over UART.
+ *
+ * TODO C2.x:
+ * Replace static public identity constants with derivation from the
+ * active firmware-owned signing key/public key path.
+ */
+#define WALLET_C2_ADDRESS_REGTEST       "mrCDrCybB6J1vRfbwM5hemdJz73FwDBC8r"
+#define WALLET_C2_PUBKEY_COMPRESSED     "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
+#define WALLET_C2_SCRIPT_P2PKH          "76a914751e76e8199196d454941c45d1b3a323f1433bd688ac"
+#define WALLET_C2_IDENTITY_VERSION      "C2.0_DEVICE_IDENTITY_REPORTING"
+#define WALLET_C2_KEY_MODEL             "KDF_AES_GCM_WRAPPED_SECP256K1_KEY_BLOB_TROPIC_AUTH_GATE"
+/*
+ * BSP COM1 is the path that actually reaches the ST-LINK Virtual COM port.
+ * The direct smoke test proved hcom_uart[COM1] prints on COM3.
+ */
+extern UART_HandleTypeDef hcom_uart[];
+extern RNG_HandleTypeDef hrng;
+
+#define WALLET_UART_CMD_MAX        1024U
+#define WALLET_UART_RESPONSE_MAX   640U
+
+#define WALLET_UART_READ_SIGN        0
+#define WALLET_UART_READ_SEINFO      1
+#define WALLET_UART_READ_POLICYINFO  2
+#define WALLET_UART_READ_VERSION    3
+#define WALLET_UART_READ_SEKEYINFO  4
+#define WALLET_UART_READ_SEKEYTEST  5
+
+#define WALLET_UART_READ_IDENTITY  6
+#define WALLET_UART_READ_ADDR      7
+#define WALLET_UART_READ_PUBKEY    8
+#define WALLET_UART_READ_SCRIPT    9
+volatile int wallet_uart_ret = 999;
+volatile int wallet_uart_keypolicy_ret = 999;
+volatile uint32_t wallet_uart_rx_len = 0;
+volatile uint32_t wallet_uart_tx_len = 0;
+
+static char wallet_uart_cmd[WALLET_UART_CMD_MAX];
+static char wallet_uart_response[WALLET_UART_RESPONSE_MAX];
+static uint8_t wallet_uart_private_key[WALLET_KEY_PROVIDER_PRIVKEY_BYTES_LEN];
+static int wallet_uart_command_is_exact(const char *cmd,
+                                        const char *expected);
+
+static void wallet_uart_send_policyinfo(void);
+static void wallet_uart_send_version(void);
+static void wallet_uart_send_identity(void);
+static void wallet_uart_send_addr(void);
+static void wallet_uart_send_pubkey(void);
+static void wallet_uart_send_script(void);
+static void wallet_uart_send_sekeyinfo(void);
+
+
+static void wallet_uart_send_sekeytest(void);
+static void wallet_uart_send_str(const char *s)
+{
+    if (s == NULL)
+    {
+        return;
+    }
+
+    uint32_t len = (uint32_t)strlen(s);
+    wallet_uart_tx_len = len;
+
+    (void)HAL_UART_Transmit(
+        &hcom_uart[COM1],
+        (uint8_t *)s,
+        len,
+        HAL_MAX_DELAY
+    );
+}
+
+static void wallet_uart_send_seinfo(void)
+{
+    snprintf(wallet_uart_response,
+             sizeof(wallet_uart_response),
+             "\r\nOK SEINFO\r\n"
+             "INIT_RET=%d\r\n"
+             "INIT_ATTEMPTS=%lu\r\n"
+             "LAST_ATTEMPT_RET=%d\r\n"
+             "INITIALIZED=%lu\r\n"
+             "AUTH_COUNT=%lu\r\n"
+             "LT_INIT_RET=%d\r\n"
+             "LT_MODE_RET=%d\r\n"
+             "LT_CHIP_ID_RET=%d\r\n"
+             "LT_DEINIT_RET=%d\r\n"
+             "MODE=%lu\r\n",
+             wallet_secure_element_init_ret,
+             (unsigned long)wallet_secure_element_init_attempts,
+             wallet_secure_element_last_attempt_ret,
+             (unsigned long)wallet_secure_element_initialized,
+             (unsigned long)wallet_secure_element_auth_count,
+             wallet_secure_element_lt_init_ret,
+             wallet_secure_element_lt_mode_ret,
+             wallet_secure_element_lt_chip_id_ret,
+             wallet_secure_element_lt_deinit_ret,
+             (unsigned long)wallet_secure_element_mode_value);
+
+    wallet_uart_send_str(wallet_uart_response);
+}
+
+static int wallet_uart_line_is_sign(const char *buf,
+                                    uint32_t line_start,
+                                    uint32_t line_end)
+{
+    if (buf == NULL)
+    {
+        return 0;
+    }
+
+    while (line_end > line_start &&
+           (buf[line_end - 1U] == '\n' || buf[line_end - 1U] == '\r'))
+    {
+        line_end--;
+    }
+
+    if ((line_end - line_start) != 4U)
+    {
+        return 0;
+    }
+
+    if (buf[line_start + 0U] != 'S') return 0;
+    if (buf[line_start + 1U] != 'I') return 0;
+    if (buf[line_start + 2U] != 'G') return 0;
+    if (buf[line_start + 3U] != 'N') return 0;
+
+    return 1;
+}
+
+static int wallet_uart_line_is_seinfo(const char *buf,
+                                      uint32_t line_start,
+                                      uint32_t line_end)
+{
+    if (buf == NULL)
+    {
+        return 0;
+    }
+
+    while (line_end > line_start &&
+           (buf[line_end - 1U] == '\n' || buf[line_end - 1U] == '\r'))
+    {
+        line_end--;
+    }
+
+    if ((line_end - line_start) != 6U)
+    {
+        return 0;
+    }
+
+    if (buf[line_start + 0U] != 'S') return 0;
+    if (buf[line_start + 1U] != 'E') return 0;
+    if (buf[line_start + 2U] != 'I') return 0;
+    if (buf[line_start + 3U] != 'N') return 0;
+    if (buf[line_start + 4U] != 'F') return 0;
+    if (buf[line_start + 5U] != 'O') return 0;
+
+    return 1;
+}
+
+static int wallet_uart_line_is_policyinfo(const char *buf,
+                                          uint32_t line_start,
+                                          uint32_t line_end)
+{
+    if (buf == NULL)
+    {
+        return 0;
+    }
+
+    while (line_end > line_start &&
+           (buf[line_end - 1U] == '\n' || buf[line_end - 1U] == '\r'))
+    {
+        line_end--;
+    }
+
+    if ((line_end - line_start) != 10U)
+    {
+        return 0;
+    }
+
+    if (buf[line_start + 0U] != 'P') return 0;
+    if (buf[line_start + 1U] != 'O') return 0;
+    if (buf[line_start + 2U] != 'L') return 0;
+    if (buf[line_start + 3U] != 'I') return 0;
+    if (buf[line_start + 4U] != 'C') return 0;
+    if (buf[line_start + 5U] != 'Y') return 0;
+    if (buf[line_start + 6U] != 'I') return 0;
+    if (buf[line_start + 7U] != 'N') return 0;
+    if (buf[line_start + 8U] != 'F') return 0;
+    if (buf[line_start + 9U] != 'O') return 0;
+
+    return 1;
+}
+
+static int wallet_uart_line_is_version(const char *buf,
+                                       uint32_t line_start,
+                                       uint32_t line_end)
+{
+    while (line_end > line_start &&
+           (buf[line_end - 1U] == '\n' || buf[line_end - 1U] == '\r'))
+    {
+        line_end--;
+    }
+
+    if ((line_end - line_start) != 7U)
+    {
+        return 0;
+    }
+
+    if (buf[line_start + 0U] != 'V') return 0;
+    if (buf[line_start + 1U] != 'E') return 0;
+    if (buf[line_start + 2U] != 'R') return 0;
+    if (buf[line_start + 3U] != 'S') return 0;
+    if (buf[line_start + 4U] != 'I') return 0;
+    if (buf[line_start + 5U] != 'O') return 0;
+    if (buf[line_start + 6U] != 'N') return 0;
+
+    return 1;
+}
+static int wallet_uart_line_is_sekeyinfo(const char *buf,
+                                         uint32_t line_start,
+                                         uint32_t line_end)
+{
+    while (line_end > line_start &&
+           (buf[line_end - 1U] == '\n' || buf[line_end - 1U] == '\r'))
+    {
+        line_end--;
+    }
+
+    if ((line_end - line_start) != 9U)
+    {
+        return 0;
+    }
+
+    return ((buf[line_start + 0U] == 'S') &&
+            (buf[line_start + 1U] == 'E') &&
+            (buf[line_start + 2U] == 'K') &&
+            (buf[line_start + 3U] == 'E') &&
+            (buf[line_start + 4U] == 'Y') &&
+            (buf[line_start + 5U] == 'I') &&
+            (buf[line_start + 6U] == 'N') &&
+            (buf[line_start + 7U] == 'F') &&
+            (buf[line_start + 8U] == 'O'));
+}
+
+static int wallet_uart_command_is_exact(const char *cmd,
+                                        const char *expected)
+{
+    size_t expected_len;
+
+    if (cmd == NULL || expected == NULL)
+    {
+        return 0;
+    }
+
+    while (*cmd == '\r' || *cmd == '\n' || *cmd == ' ' || *cmd == '\t')
+    {
+        cmd++;
+    }
+
+    expected_len = strlen(expected);
+
+    if (strncmp(cmd, expected, expected_len) != 0)
+    {
+        return 0;
+    }
+
+    cmd += expected_len;
+
+    while (*cmd == '\r' || *cmd == '\n' || *cmd == ' ' || *cmd == '\t')
+    {
+        cmd++;
+    }
+
+    return (*cmd == '\0');
+}
+
+static void wallet_uart_send_addr(void)
+{
+    wallet_uart_send_str("\r\nOK ADDR\r\n");
+    wallet_uart_send_str("NETWORK=REGTEST\r\n");
+    wallet_uart_send_str("ADDRESS=");
+    wallet_uart_send_str(WALLET_C2_ADDRESS_REGTEST);
+    wallet_uart_send_str("\r\n");
+    wallet_uart_send_str("SCRIPT_P2PKH=");
+    wallet_uart_send_str(WALLET_C2_SCRIPT_P2PKH);
+    wallet_uart_send_str("\r\n");
+}
+
+static void wallet_uart_send_pubkey(void)
+{
+    wallet_uart_send_str("\r\nOK PUBKEY\r\n");
+    wallet_uart_send_str("PUBKEY_COMPRESSED=");
+    wallet_uart_send_str(WALLET_C2_PUBKEY_COMPRESSED);
+    wallet_uart_send_str("\r\n");
+}
+
+static void wallet_uart_send_script(void)
+{
+    wallet_uart_send_str("\r\nOK SCRIPT\r\n");
+    wallet_uart_send_str("SCRIPT_P2PKH=");
+    wallet_uart_send_str(WALLET_C2_SCRIPT_P2PKH);
+    wallet_uart_send_str("\r\n");
+}
+
+static void wallet_uart_send_identity(void)
+{
+    wallet_uart_send_str("\r\nOK IDENTITY\r\n");
+    wallet_uart_send_str("IDENTITY_VERSION=");
+    wallet_uart_send_str(WALLET_C2_IDENTITY_VERSION);
+    wallet_uart_send_str("\r\n");
+    wallet_uart_send_str("NETWORK=REGTEST\r\n");
+    wallet_uart_send_str("ADDRESS=");
+    wallet_uart_send_str(WALLET_C2_ADDRESS_REGTEST);
+    wallet_uart_send_str("\r\n");
+    wallet_uart_send_str("PUBKEY_COMPRESSED=");
+    wallet_uart_send_str(WALLET_C2_PUBKEY_COMPRESSED);
+    wallet_uart_send_str("\r\n");
+    wallet_uart_send_str("SCRIPT_P2PKH=");
+    wallet_uart_send_str(WALLET_C2_SCRIPT_P2PKH);
+    wallet_uart_send_str("\r\n");
+    wallet_uart_send_str("CURRENT_BITCOIN_KEY_MODEL=");
+    wallet_uart_send_str(WALLET_C2_KEY_MODEL);
+    wallet_uart_send_str("\r\n");
+    wallet_uart_send_str("CURRENT_DEV_KEY_ENABLED=0\r\n");
+    wallet_uart_send_str("BITCOIN_DIRECT_TROPIC_SIGNING=0\r\n");
+    wallet_uart_send_str("BITCOIN_REQUIRED_CURVE=SECP256K1\r\n");
+}
+static int wallet_uart_read_command(void)
+{
+    uint8_t ch = 0;
+    uint32_t pos = 0;
+    uint32_t line_start = 0;
+
+    memset(wallet_uart_cmd, 0, sizeof(wallet_uart_cmd));
+    wallet_uart_rx_len = 0;
+
+    wallet_uart_send_str(
+        "\r\nREADY\r\n"
+        "Paste command ending with SIGN, or type SEINFO, POLICYINFO, VERSION, SEKEYINFO, SEKEYTEST, IDENTITY, ADDR, PUBKEY, or SCRIPT, then Enter.\r\n"
+        "> "
+    );
+
+    while (1)
+    {
+        if (HAL_UART_Receive(&hcom_uart[COM1], &ch, 1U, HAL_MAX_DELAY) != HAL_OK)
+        {
+            return -1;
+        }
+
+        /*
+         * Do not echo input.
+         * Echo can confuse scripted PowerShell reads.
+         */
+
+        if (pos >= (WALLET_UART_CMD_MAX - 1U))
+        {
+            wallet_uart_cmd[WALLET_UART_CMD_MAX - 1U] = '\0';
+            wallet_uart_rx_len = pos;
+            return -2;
+        }
+
+        wallet_uart_cmd[pos] = (char)ch;
+        pos++;
+        wallet_uart_cmd[pos] = '\0';
+
+        if (ch == '\n' || ch == '\r')
+        {
+            if (wallet_uart_line_is_seinfo(wallet_uart_cmd, line_start, pos))
+            {
+                wallet_uart_rx_len = pos;
+                return WALLET_UART_READ_SEINFO;
+            }
+
+            if (wallet_uart_line_is_policyinfo(wallet_uart_cmd, line_start, pos))
+            {
+                wallet_uart_rx_len = pos;
+                return WALLET_UART_READ_POLICYINFO;
+            }
+
+            if (wallet_uart_line_is_version(wallet_uart_cmd, line_start, pos))
+            {
+                wallet_uart_rx_len = pos;
+                return WALLET_UART_READ_VERSION;
+            }
+
+            if (wallet_uart_line_is_sekeyinfo(wallet_uart_cmd, line_start, pos))
+            {
+                wallet_uart_rx_len = pos;
+                return WALLET_UART_READ_SEKEYINFO;
+            }
+
+            if (wallet_uart_command_is_exact(wallet_uart_cmd, "SEKEYTEST"))
+            {
+                wallet_uart_rx_len = pos;
+                return WALLET_UART_READ_SEKEYTEST;
+            }
+
+            if (wallet_uart_command_is_exact(wallet_uart_cmd, "IDENTITY"))
+            {
+                wallet_uart_rx_len = pos;
+                return WALLET_UART_READ_IDENTITY;
+            }
+
+            if (wallet_uart_command_is_exact(wallet_uart_cmd, "ADDR"))
+            {
+                wallet_uart_rx_len = pos;
+                return WALLET_UART_READ_ADDR;
+            }
+
+            if (wallet_uart_command_is_exact(wallet_uart_cmd, "PUBKEY"))
+            {
+                wallet_uart_rx_len = pos;
+                return WALLET_UART_READ_PUBKEY;
+            }
+
+            if (wallet_uart_command_is_exact(wallet_uart_cmd, "SCRIPT"))
+            {
+                wallet_uart_rx_len = pos;
+                return WALLET_UART_READ_SCRIPT;
+            }
+            if (wallet_uart_line_is_sign(wallet_uart_cmd, line_start, pos))
+            {
+                wallet_uart_rx_len = pos;
+                return WALLET_UART_READ_SIGN;
+            }
+
+            line_start = pos;
+        }
+    }
+}
+
+static int wallet_uart_check_host_key_policy(const char *input)
+{
+    if (input == NULL)
+    {
+        return -20;
+    }
+
+    /*
+     * Host commands must never contain a private key.
+     */
+    if (strstr(input, "PRIVKEY=") != NULL)
+    {
+        return -21;
+    }
+
+    return 0;
+}
+
+static void wallet_uart_clear_shared_debug(void)
+{
+    tx_preimage_build_ret = 999;
+    signed_tx_build_ret = 999;
+
+    memset((void *)signed_tx_raw, 0, sizeof(signed_tx_raw));
+    signed_tx_len = 0;
+    signed_tx_expected_len = 0;
+    signed_tx_script_sig_len = 0;
+
+    signed_tx_len_match = 0;
+    signed_tx_script_sig_ok = 0;
+    signed_tx_prefix_ok = 0;
+    signed_tx_ok = 0;
+
+    memset(signed_tx_hex, 0, sizeof(signed_tx_hex));
+    signed_tx_hex_len = 0;
+    signed_tx_hex_expected_len = 0;
+    signed_tx_hex_ok = 0;
+
+    memset(signed_tx_hex_part0, 0, sizeof(signed_tx_hex_part0));
+    memset(signed_tx_hex_part1, 0, sizeof(signed_tx_hex_part1));
+    memset(signed_tx_hex_part2, 0, sizeof(signed_tx_hex_part2));
+    memset(signed_tx_hex_part3, 0, sizeof(signed_tx_hex_part3));
+    memset(signed_tx_hex_part4, 0, sizeof(signed_tx_hex_part4));
+    signed_tx_hex_parts_ok = 0;
+
+    wallet_uart_ret = 999;
+    wallet_uart_keypolicy_ret = 999;
+
+    memset(wallet_uart_private_key, 0, sizeof(wallet_uart_private_key));
+}
+
+static void wallet_uart_send_policyinfo(void)
+{
+    wallet_uart_send_str("\r\nOK POLICYINFO\r\n");
+
+    wallet_uart_send_str("NETWORK_REQUIRED=REGTEST\r\n");
+    wallet_uart_send_str("TX_TYPE=LEGACY_P2PKH_1IN_2OUT\r\n");
+
+    wallet_uart_send_str("MAX_FEE_SATS=20000\r\n");
+    wallet_uart_send_str("MAX_PAY_SATS=70000\r\n");
+
+    wallet_uart_send_str("OWN_INPUT_SCRIPT=76a914751e76e8199196d454941c45d1b3a323f1433bd688ac\r\n");
+    wallet_uart_send_str("OWN_CHANGE_SCRIPT=76a914751e76e8199196d454941c45d1b3a323f1433bd688ac\r\n");
+    wallet_uart_send_str("ALLOWED_PAY_SCRIPT=76a914f2124d94cabdb95d49479627cbbe5d7be609f73888ac\r\n");
+
+    wallet_uart_send_str("ERR_FEE_TOO_HIGH=-35\r\n");
+    wallet_uart_send_str("ERR_SCRIPT_TYPE=-37\r\n");
+    wallet_uart_send_str("ERR_PAY_NOT_ALLOWED=-38\r\n");
+    wallet_uart_send_str("ERR_CHANGE_NOT_OWN=-39\r\n");
+    wallet_uart_send_str("ERR_INPUT_NOT_OWN=-40\r\n");
+    wallet_uart_send_str("ERR_PAY_TOO_HIGH=-41\r\n");
+    wallet_uart_send_str("ERR_NETWORK_NOT_REGTEST=-42\r\n");
+}
+
+static void wallet_uart_send_version(void)
+{
+    wallet_uart_send_str("\r\nOK VERSION\r\n");
+    wallet_uart_send_str("APP=" WALLET_APP_NAME_STRING "\r\n");
+    wallet_uart_send_str("VERSION=" WALLET_APP_VERSION_STRING "\r\n");
+    wallet_uart_send_str("BOARD=" WALLET_BOARD_STRING "\r\n");
+    wallet_uart_send_str("MCU=" WALLET_MCU_STRING "\r\n");
+    wallet_uart_send_str("UART=BSP_COM1_STLINK_VCP_115200_8N1\r\n");
+    wallet_uart_send_str("SE=" WALLET_SE_STRING "\r\n");
+    wallet_uart_send_str("KEY_MODEL=" WALLET_KEY_MODEL_STRING "\r\n");
+    wallet_uart_send_str("DEV_KEY_ENABLED=" WALLET_DEV_KEY_ENABLED_STRING "\r\n");
+    wallet_uart_send_str("POLICY=" WALLET_POLICY_MODEL_STRING "\r\n");
+    wallet_uart_send_str("TX_TYPE=LEGACY_P2PKH_1IN_2OUT\r\n");
+    wallet_uart_send_str("NETWORK_REQUIRED=REGTEST\r\n");
+    wallet_uart_send_str("BUILD_DATE=" __DATE__ "\r\n");
+    wallet_uart_send_str("BUILD_TIME=" __TIME__ "\r\n");
+}
+static void wallet_uart_send_sekeytest(void)
+{
+    wallet_uart_send_str("\r\nERR SEKEYTEST\r\n");
+    wallet_uart_send_str("TEST=TROPIC_P256_SIGN_SELFTEST\r\n");
+    wallet_uart_send_str("STATUS=DISABLED_AFTER_L3_HANG\r\n");
+    wallet_uart_send_str("BITCOIN_DIRECT_TROPIC_SIGNING=0\r\n");
+    wallet_uart_send_str("NOTE=B1_SEKEYINFO_IS_CURRENT_SAFE_MILESTONE\r\n");
+}
+static void wallet_uart_send_sekeyinfo(void)
+{
+    wallet_uart_send_str("\r\nOK SEKEYINFO\r\n");
+    wallet_uart_send_str("SE=TROPIC01\r\n");
+    wallet_uart_send_str("ECC_KEY_SLOTS=32\r\n");
+    wallet_uart_send_str("ECC_SLOT_MIN=0\r\n");
+    wallet_uart_send_str("ECC_SLOT_MAX=31\r\n");
+    wallet_uart_send_str("TROPIC_KEY_GENERATE=1\r\n");
+    wallet_uart_send_str("TROPIC_KEY_STORE=1\r\n");
+    wallet_uart_send_str("TROPIC_KEY_READ_PUBLIC=1\r\n");
+    wallet_uart_send_str("TROPIC_KEY_ERASE=1\r\n");
+    wallet_uart_send_str("TROPIC_ECDSA_SIGN=1\r\n");
+    wallet_uart_send_str("TROPIC_EDDSA_SIGN=1\r\n");
+    wallet_uart_send_str("TROPIC_CURVE_P256=1\r\n");
+    wallet_uart_send_str("TROPIC_CURVE_ED25519=1\r\n");
+    wallet_uart_send_str("TROPIC_CURVE_SECP256K1=0\r\n");
+    wallet_uart_send_str("BITCOIN_DIRECT_TROPIC_SIGNING=0\r\n");
+    wallet_uart_send_str("BITCOIN_REQUIRED_CURVE=SECP256K1\r\n");
+    wallet_uart_send_str("CURRENT_BITCOIN_KEY_MODEL=" WALLET_KEY_MODEL_STRING "\r\n");
+    wallet_uart_send_str("CURRENT_DEV_KEY_ENABLED=" WALLET_DEV_KEY_ENABLED_STRING "\r\n");
+}
+static int wallet_uart_split_hex_chunks(void)
+{
+    uint32_t pos = 0;
+    uint32_t remaining = signed_tx_hex_len;
+    uint32_t take = 0;
+
+    take = (remaining > 100U) ? 100U : remaining;
+    memcpy(signed_tx_hex_part0, &signed_tx_hex[pos], take);
+    signed_tx_hex_part0[take] = '\0';
+    pos += take;
+    remaining -= take;
+
+    take = (remaining > 100U) ? 100U : remaining;
+    memcpy(signed_tx_hex_part1, &signed_tx_hex[pos], take);
+    signed_tx_hex_part1[take] = '\0';
+    pos += take;
+    remaining -= take;
+
+    take = (remaining > 100U) ? 100U : remaining;
+    memcpy(signed_tx_hex_part2, &signed_tx_hex[pos], take);
+    signed_tx_hex_part2[take] = '\0';
+    pos += take;
+    remaining -= take;
+
+    take = (remaining > 100U) ? 100U : remaining;
+    memcpy(signed_tx_hex_part3, &signed_tx_hex[pos], take);
+    signed_tx_hex_part3[take] = '\0';
+    pos += take;
+    remaining -= take;
+
+    take = (remaining > 100U) ? 100U : remaining;
+    memcpy(signed_tx_hex_part4, &signed_tx_hex[pos], take);
+    signed_tx_hex_part4[take] = '\0';
+    pos += take;
+    remaining -= take;
+
+    return (remaining == 0U && pos == signed_tx_hex_len) ? 1 : 0;
+}
+
+void wallet_uart_run(void)
+{
+    debug_stage = 6000;
+
+    hal_rng_word = 0;
+    hal_rng_ret = HAL_RNG_GenerateRandomNumber(
+        &hrng,
+        (uint32_t *)&hal_rng_word
+    );
+
+    debug_stage = 6010;
+
+    if (hal_rng_ret != HAL_OK)
+    {
+        wallet_uart_send_str("ERR RNG\r\n");
+        while (1) { __NOP(); }
+    }
+
+    psa_init_ret = psa_crypto_init();
+
+    debug_stage = 6020;
+
+    if (psa_init_ret != PSA_SUCCESS)
+    {
+        wallet_uart_send_str("ERR PSA\r\n");
+        while (1) { __NOP(); }
+    }
+
+    debug_stage = 6030;
+
+    if (wallet_secure_element_init() != 0)
+    {
+        wallet_uart_send_str("ERR SECURE_ELEMENT_INIT\r\n");
+        while (1) { __NOP(); }
+    }
+
+    wallet_uart_send_str("\r\nSTM32 WALLET UART READY\r\n");
+
+    while (1)
+    {
+        wallet_uart_clear_shared_debug();
+
+        debug_stage = 6100;
+
+        wallet_uart_ret = wallet_uart_read_command();
+
+        debug_stage = 6110;
+
+        if (wallet_uart_ret == WALLET_UART_READ_SEINFO)
+        {
+            debug_stage = 6120;
+            wallet_uart_send_seinfo();
+            continue;
+        }
+
+        if (wallet_uart_ret == WALLET_UART_READ_POLICYINFO)
+        {
+            debug_stage = 6130;
+            wallet_uart_send_policyinfo();
+            continue;
+        }
+
+        if (wallet_uart_ret == WALLET_UART_READ_VERSION)
+        {
+            debug_stage = 6140;
+            wallet_uart_send_version();
+            continue;
+        }
+
+        if (wallet_uart_ret == WALLET_UART_READ_SEKEYINFO)
+        {
+            debug_stage = 6150;
+            wallet_uart_send_sekeyinfo();
+            continue;
+        }
+
+        if (wallet_uart_ret == WALLET_UART_READ_SEKEYTEST)
+        {
+            debug_stage = 6160;
+            wallet_uart_send_sekeytest();
+            continue;
+        }
+
+        if (wallet_uart_ret == WALLET_UART_READ_IDENTITY)
+        {
+            debug_stage = 6170;
+            wallet_uart_send_identity();
+            continue;
+        }
+
+        if (wallet_uart_ret == WALLET_UART_READ_ADDR)
+        {
+            debug_stage = 6171;
+            wallet_uart_send_addr();
+            continue;
+        }
+
+        if (wallet_uart_ret == WALLET_UART_READ_PUBKEY)
+        {
+            debug_stage = 6172;
+            wallet_uart_send_pubkey();
+            continue;
+        }
+
+        if (wallet_uart_ret == WALLET_UART_READ_SCRIPT)
+        {
+            debug_stage = 6173;
+            wallet_uart_send_script();
+            continue;
+        }
+        if (wallet_uart_ret != WALLET_UART_READ_SIGN)
+        {
+            snprintf(wallet_uart_response,
+                     sizeof(wallet_uart_response),
+                     "\r\nERR READ %d\r\n",
+                     wallet_uart_ret);
+
+            wallet_uart_send_str(wallet_uart_response);
+            continue;
+        }
+
+        debug_stage = 6200;
+
+        wallet_uart_keypolicy_ret = wallet_uart_check_host_key_policy(wallet_uart_cmd);
+
+        if (wallet_uart_keypolicy_ret != 0)
+        {
+            snprintf(wallet_uart_response,
+                     sizeof(wallet_uart_response),
+                     "\r\nERR KEYPOLICY %d\r\n",
+                     wallet_uart_keypolicy_ret);
+
+            wallet_uart_send_str(wallet_uart_response);
+            continue;
+        }
+
+        /*
+         * Policy must run before key provider / secure-element authorization.
+         * This rejects unsafe transactions before any private key access.
+         */
+        wallet_uart_ret = wallet_command_check_policy_text(wallet_uart_cmd);
+
+        if (wallet_uart_ret != 0)
+        {
+            snprintf(wallet_uart_response,
+                     sizeof(wallet_uart_response),
+                     "\r\nERR POLICY %d\r\n",
+                     wallet_uart_ret);
+
+            wallet_uart_send_str(wallet_uart_response);
+            continue;
+        }
+
+        wallet_uart_keypolicy_ret = wallet_key_provider_get_private_key_bytes_for_command(
+            wallet_uart_cmd,
+            wallet_uart_private_key,
+            sizeof(wallet_uart_private_key)
+        );
+
+        if (wallet_uart_keypolicy_ret != 0)
+        {
+            snprintf(wallet_uart_response,
+                     sizeof(wallet_uart_response),
+                     "\r\nERR KEYPROVIDER %d\r\n",
+                     wallet_uart_keypolicy_ret);
+
+            wallet_uart_send_str(wallet_uart_response);
+            continue;
+        }
+
+        wallet_uart_ret = wallet_command_sign_text_with_private_key(
+            wallet_uart_cmd,
+            wallet_uart_private_key,
+            (uint8_t *)signed_tx_raw,
+            sizeof(signed_tx_raw),
+            (uint32_t *)&signed_tx_len,
+            signed_tx_hex,
+            sizeof(signed_tx_hex)
+        );
+
+        memset(wallet_uart_private_key, 0, sizeof(wallet_uart_private_key));
+
+        signed_tx_build_ret = wallet_uart_ret;
+        tx_preimage_build_ret = 0;
+
+        debug_stage = 6210;
+
+        if (wallet_uart_ret != 0)
+        {
+            snprintf(wallet_uart_response,
+                     sizeof(wallet_uart_response),
+                     "\r\nERR SIGN %d\r\n",
+                     wallet_uart_ret);
+
+            wallet_uart_send_str(wallet_uart_response);
+            continue;
+        }
+
+        signed_tx_hex_len = signed_tx_len * 2U;
+        signed_tx_hex_expected_len = signed_tx_hex_len;
+
+        if (signed_tx_len > 4U &&
+            signed_tx_raw[signed_tx_len - 4U] == 0x00 &&
+            signed_tx_raw[signed_tx_len - 3U] == 0x00 &&
+            signed_tx_raw[signed_tx_len - 2U] == 0x00 &&
+            signed_tx_raw[signed_tx_len - 1U] == 0x00)
+        {
+            signed_tx_ok = 1;
+        }
+
+        if (signed_tx_hex[0] == '0' &&
+            signed_tx_hex[1] == '1' &&
+            signed_tx_hex[8] == '0' &&
+            signed_tx_hex[9] == '1')
+        {
+            signed_tx_hex_ok = 1;
+        }
+
+        signed_tx_hex_parts_ok = (uint32_t)wallet_uart_split_hex_chunks();
+
+        if (signed_tx_ok != 1 ||
+            signed_tx_hex_ok != 1 ||
+            signed_tx_hex_parts_ok != 1U)
+        {
+            wallet_uart_send_str("\r\nERR POSTCHECK\r\n");
+            continue;
+        }
+
+        debug_stage = 6280;
+
+        wallet_uart_send_str("\r\nOK\r\nRAW_TX=");
+        wallet_uart_send_str(signed_tx_hex);
+        wallet_uart_send_str("\r\n");
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

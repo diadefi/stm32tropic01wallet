@@ -1,0 +1,650 @@
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\bits.h:3: * @brief Struct and function declarations for dealing with bit assignment.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\bits.h:42: // BIT defines a bit mask for the specified bit number from 0 to whatever fits into an unsigned long
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:87: * @brief Extracts ST_Pub from TROPIC01's Certificate Store
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:90: * @param stpub       When the function executes successfully, TROPIC01's STPUB of length
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:91: * `TR01_STPUB_LEN` will be written into this buffer
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:97: lt_ret_t lt_get_st_pub(const struct lt_cert_store_t *store, uint8_t *stpub);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:163: * @note              To successfully estabilish Secure Session, you need to know Tropic01's X25519
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:164: * public key. (STPUB). The STPUB can be obtained using lt_get_st_pub, or you can use
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:166: * STPUB automatically and set up the Secure Session for you.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:169: * @param stpub       STPUB from device's certificate
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:170: * @param pkey_index  Index of pairing public key
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:171: * @param shipriv     Secure host private key
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:172: * @param shipub      Secure host public key
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:178: lt_ret_t lt_session_start(lt_handle_t *h, const uint8_t *stpub, const lt_pkey_index_t pkey_index,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:179: const uint8_t *shipriv, const uint8_t *shipub);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:315: * @brief Writes pairing public key into TROPIC01's pairing key slot 0-3
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:316: * @warning The pairing keys reside in I-Memory, which has narrower operating temperature range (-20 ?C
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:319: * firmware older than v2.0.0, make sure to manually check whether the pairing key was correctly
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:323: * @param pairing_pub 32B of pubkey
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:324: * @param slot        Pairing key slot index
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:330: lt_ret_t lt_pairing_key_write(lt_handle_t *h, const uint8_t *pairing_pub, const lt_pkey_index_t slot);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:333: * @brief Reads pairing public key from TROPIC01's pairing key slot 0-3
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:336: * @param pairing_pub 32B of pubkey
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:337: * @param slot        Pairing key slot index
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:343: lt_ret_t lt_pairing_key_read(lt_handle_t *h, uint8_t *pairing_pub, const lt_pkey_index_t slot);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:346: * @brief Invalidates pairing key in slot 0-3
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:347: * @warning The pairing keys reside in I-Memory, which has narrower operating temperature range (-20 ?C
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:350: * firmware older than v2.0.0, make sure to manually check whether the pairing key was correctly
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:354: * @param slot        Pairing key slot index
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:360: lt_ret_t lt_pairing_key_invalidate(lt_handle_t *h, const lt_pkey_index_t slot);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:439: * @brief Writes bytes into a given slot of the User Partition in the R memory
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:442: * @param udata_slot  Memory's slot to be written
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:443: * @param data        Buffer of data to be written into R MEMORY slot
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:444: * @param data_size   Size of data to be written (valid range given by macros
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:451: lt_ret_t lt_r_mem_data_write(lt_handle_t *h, const uint16_t udata_slot, const uint8_t *data,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:455: * @brief Reads bytes from a given slot of the User Partition in the R memory
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:458: * @param udata_slot       Memory's slot to be read
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:467: lt_ret_t lt_r_mem_data_read(lt_handle_t *h, const uint16_t udata_slot, uint8_t *data,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:471: * @brief Erases the given slot of the User Partition in the R memory
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:474: * @param udata_slot  Memory's slot to be erased
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:480: lt_ret_t lt_r_mem_data_erase(lt_handle_t *h, const uint16_t udata_slot);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:496: * @brief Generates ECC key in the specified ECC key slot
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:499: * @param slot        Slot number lt_ecc_slot_t
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:500: * @param curve       Type of ECC curve. Use L3_ECC_KEY_GENERATE_CURVE_ED25519 or
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:501: * L3_ECC_KEY_GENERATE_CURVE_P256
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:507: lt_ret_t lt_ecc_key_generate(lt_handle_t *h, const lt_ecc_slot_t slot,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:508: const lt_ecc_curve_type_t curve);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:511: * @brief Stores ECC key to the specified ECC key slot
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:514: * @param slot        Slot number lt_ecc_slot_t
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:515: * @param curve       Type of ECC curve. Use L3_ECC_KEY_GENERATE_CURVE_ED25519 or
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:516: * L3_ECC_KEY_GENERATE_CURVE_P256
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:517: * @param key         Key to store (only the first 32 bytes are stored)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:523: lt_ret_t lt_ecc_key_store(lt_handle_t *h, const lt_ecc_slot_t slot, const lt_ecc_curve_type_t curve,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:524: const uint8_t *key);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:527: * @brief Reads ECC public key corresponding to a private key in the specified ECC key slot.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:530: * @param ecc_slot       Slot number TR01_ECC_SLOT_0 - TR01_ECC_SLOT_31
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:531: * @param key            Buffer for retrieving a key; length depends on the type of key in the slot
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:532: * (32B for Ed25519, 64B for P256), according to *curve*
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:533: * @param key_max_size   Size of the key buffer
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:534: * @param curve          When the function executes successfully, the type of elliptic curve public key
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:536: * @param origin         When the function executes successfully, the origin of the public key
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:543: lt_ret_t lt_ecc_key_read(lt_handle_t *h, const lt_ecc_slot_t ecc_slot, uint8_t *key,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:544: const uint8_t key_max_size, lt_ecc_curve_type_t *curve,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:545: lt_ecc_key_origin_t *origin);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:548: * @brief Erases ECC key from the specified ECC key slot
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:551: * @param ecc_slot    Slot number TR01_ECC_SLOT_0 - TR01_ECC_SLOT_31
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:557: lt_ret_t lt_ecc_key_erase(lt_handle_t *h, const lt_ecc_slot_t ecc_slot);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:560: * @brief Calculates ECDSA signature of a message hash (32 bytes) with a private ECC key stored in
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:564: * @param ecc_slot     Slot containing a private key, TR01_ECC_SLOT_0 - TR01_ECC_SLOT_31
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:565: * @param msg_hash     Buffer containing a 32-byte hash of the message to sign
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:567: * @param rs           Buffer for storing a signature in a form of R and S bytes (should always have
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:574: lt_ret_t lt_ecc_ecdsa_sign(lt_handle_t *h, const lt_ecc_slot_t ecc_slot, const uint8_t *msg_hash,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:578: * @brief Performs EdDSA sign of a message with a private ECC key stored in TROPIC01
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:581: * @param ecc_slot    Slot containing a private key, TR01_ECC_SLOT_0 - TR01_ECC_SLOT_31
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:582: * @param msg         Buffer containing a message to sign, max length is 4096B
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:584: * @param rs          Buffer for storing a signature in a form of R and S bytes (should always have
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:591: lt_ret_t lt_ecc_eddsa_sign(lt_handle_t *h, const lt_ecc_slot_t ecc_slot, const uint8_t *msg,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:636: * @brief Executes the MAC-and-Destroy sequence.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:637: * @details This command is just a part of MAC And Destroy sequence, which takes place between the host
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:638: * and TROPIC01. Example code can be found in examples/lt_ex_macandd.c, for more info about Mac And
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:642: * @param slot        Mac-and-Destroy slot index, valid values are 0-127
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:650: lt_ret_t lt_mac_and_destroy(lt_handle_t *h, const lt_mac_and_destroy_slot_t slot,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:743: * parses out STPUB from the device's certificate, because STPUB is used for handshake.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:750: * @param shipriv     Host's private pairing key for the slot `pkey_index`
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:751: * @param shipub      Host's public pairing key for the slot `pkey_index`
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:752: * @param pkey_index  Pairing key index
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:758: lt_ret_t lt_verify_chip_and_start_secure_session(lt_handle_t *h, const uint8_t *shipriv,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:759: const uint8_t *shipub,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic.h:760: const lt_pkey_index_t pkey_index);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:14: #include "libtropic_macros.h"
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:58: * @note This macro corresponds to both L2 Request and Response frame, so for the first addend, we
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:80: * @details Currently the max size has the EDDSA_Sign Command.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:98: * @brief Host MCU's X25519 private key to execute a Secure Channel Handshake on Pairing Key slot 0 of
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:101: * @note This key should be used for the first Secure Channel Handshake and we recommend invalidating
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:102: * the slot 0 after you write your own pairing key to another slot. Refer to the section 5.4 (Security
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:105: extern const uint8_t lt_sh0priv_eng_sample[];
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:107: * @brief Host MCU's X25519 public key (stored in TROPIC01) to execute a Secure Channel Handshake on
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:108: * Pairing Key slot 0 of the engineering (pre-production) TROPIC01 samples.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:110: * @note This key should be used for the first Secure Channel Handshake and we recommend invalidating
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:111: * the slot 0 after you write your own pairing key to another slot. Refer to the section 5.4 (Security
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:114: extern const uint8_t lt_sh0pub_eng_sample[];
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:116: * @brief Host MCU's X25519 private key to execute a Secure Channel Handshake on Pairing Key slot 0 of
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:119: * @note This key should be used for the first Secure Channel Handshake and we recommend invalidating
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:120: * the slot 0 after you write your own pairing key to another slot. Refer to the section 5.4 (Security
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:123: extern const uint8_t lt_sh0priv_prod0[];
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:125: * @brief Host MCU's X25519 public key (stored in TROPIC01) to execute a Secure Channel Handshake on
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:126: * Pairing Key slot 0 of the production TROPIC01 chips.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:128: * @note This key should be used for the first Secure Channel Handshake and we recommend invalidating
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:129: * the slot 0 after you write your own pairing key to another slot. Refer to the section 5.4 (Security
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:132: extern const uint8_t lt_sh0pub_prod0[];
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:242: void *crypto_ctx;
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:253: /** @brief Length of key used by AES256. */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:254: #define TR01_AES256_KEY_LEN 32
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:261: /** @private @brief Maximal size of the UDATA slot in the User R-Memory. */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:262: uint16_t r_mem_udata_slot_size_max;
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:289: /** @brief Error detected during cryptographic operation */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:290: LT_CRYPTO_ERR = 4,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:324: /** @brief L3 result [API R_Mem_Data_Write]: The target slot is already written. */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:325: LT_L3_SLOT_NOT_EMPTY = 13,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:326: /** @brief L3 result [API R_Mem_Data_Write]: The target FLASH slot has expired. */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:327: LT_L3_SLOT_EXPIRED = 14,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:328: /** @brief L3 result [API EDDSA_Sign, ECDSA_Sign, ECC_Key_Read]: The key in selected slot is
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:331: LT_L3_INVALID_KEY = 15,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:337: /** @brief L3 result [API Pairing_Key_Read]: The requested slot is empty and contains no valid
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:339: LT_L3_SLOT_EMPTY = 18,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:340: /** @brief L3 result [API Pairing_Key_Read]: The slot content is invalidated. */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:341: LT_L3_SLOT_INVALID = 19,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:346: /** @brief Insufficient User Access Privileges. */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:350: /** @brief L3 result [API Pairing_Key_Write, Pairing_Key_Invalidate, R_Config_Write,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:366: /** @brief User slot is empty */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:367: LT_L3_R_MEM_DATA_READ_SLOT_EMPTY = 28,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:411: /** @brief Special helper value used to signalize the last enum value, used in lt_ret_verbose. */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:666: uint8_t signature[64]; /**< Signature of SHA256 hash calculated from the rest of the data in
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:682: LT_MEMBER_SIZE(struct lt_mutable_fw_update_chunk_0_t, signature) +
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:746: uint32_t pair_version;
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:763: LT_MEMBER_SIZE(struct lt_header_boot_v2_t, pair_version)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:770: /** @brief Pairing key indexes corresponds to S_HiPub */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:771: typedef enum lt_pkey_index_t {
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:772: TR01_PAIRING_KEY_SLOT_INDEX_0,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:773: TR01_PAIRING_KEY_SLOT_INDEX_1,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:774: TR01_PAIRING_KEY_SLOT_INDEX_2,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:775: TR01_PAIRING_KEY_SLOT_INDEX_3,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:776: } lt_pkey_index_t;
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:778: /** @brief Stores Host MCU ephemeral keys. */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:779: typedef struct lt_host_eph_keys_t {
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:780: uint8_t ehpriv[32]; /**< Host MCU ephemeral private key. */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:781: uint8_t ehpub[32];  /**< Host MCU ephemeral public key. */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:782: } lt_host_eph_keys_t;
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:784: /** @brief Length of key used in X25519 function.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:786: * ECDH uses X25519 function with Curve25519 -> 32 bytes. See "Variables" section in GLOSSARY in
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:787: * TROPIC01 datasheet. This is the same for stpub, ehpriv, ehpub.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:789: #define TR01_X25519_KEY_LEN 32
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:791: /** @brief Bit size of Curve25519 used for X25519 (Useful for crypto backends which expect bit-size).
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:793: * @note This is different from the key length in bytes * 8, because of clamping.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:795: #define TR01_X25519_KEY_BITS 255
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:797: /** @brief Length of TROPIC01 X25519 public key for a Secure Channel Handshake. */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:798: #define TR01_STPUB_LEN TR01_X25519_KEY_LEN
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:799: /** @brief Length of TROPIC01 X25519 private key for a Secure Channel Handshake. */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:800: #define TR01_STPRIV_LEN TR01_X25519_KEY_LEN
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:801: /** @brief Length of X25519 public key of the Host MCU to execute a Secure Channel Handshake on Pairing
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:802: * Key slot i.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:804: * @note In other words, SHiPUB is also a length of the key that is stored in pairing key slots in
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:807: #define TR01_SHIPUB_LEN TR01_X25519_KEY_LEN
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:808: /** @brief Length of X25519 private key of the Host MCU to execute a Secure Channel Handshake on
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:809: * Pairing Key slot i. */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:810: #define TR01_SHIPRIV_LEN TR01_X25519_KEY_LEN
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:812: /** @brief Length of TROPIC01 ephemeral private key. */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:813: #define TR01_ETPRIV_LEN TR01_X25519_KEY_LEN
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:814: /** @brief Length of TROPIC01 ephemeral public key. */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:815: #define TR01_ETPUB_LEN TR01_X25519_KEY_LEN
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:816: /** @brief Length of Host MCU ephemeral private key. */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:817: #define TR01_EHPRIV_LEN TR01_X25519_KEY_LEN
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:818: /** @brief Length of Host MCU ephemeral public key */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:819: #define TR01_EHPUB_LEN TR01_X25519_KEY_LEN
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:840: TR01_CFG_UAP_PAIRING_KEY_WRITE_ADDR = APPLICATION_CO_CFG_UAP_PAIRING_KEY_WRITE_ADDR,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:841: TR01_CFG_UAP_PAIRING_KEY_READ_ADDR = APPLICATION_CO_CFG_UAP_PAIRING_KEY_READ_ADDR,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:842: TR01_CFG_UAP_PAIRING_KEY_INVALIDATE_ADDR = APPLICATION_CO_CFG_UAP_PAIRING_KEY_INVALIDATE_ADDR,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:852: TR01_CFG_UAP_ECC_KEY_GENERATE_ADDR = APPLICATION_CO_CFG_UAP_ECC_KEY_GENERATE_ADDR,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:853: TR01_CFG_UAP_ECC_KEY_STORE_ADDR = APPLICATION_CO_CFG_UAP_ECC_KEY_STORE_ADDR,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:854: TR01_CFG_UAP_ECC_KEY_READ_ADDR = APPLICATION_CO_CFG_UAP_ECC_KEY_READ_ADDR,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:855: TR01_CFG_UAP_ECC_KEY_ERASE_ADDR = APPLICATION_CO_CFG_UAP_ECC_KEY_ERASE_ADDR,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:856: TR01_CFG_UAP_ECDSA_SIGN_ADDR = APPLICATION_CO_CFG_UAP_ECDSA_SIGN_ADDR,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:857: TR01_CFG_UAP_EDDSA_SIGN_ADDR = APPLICATION_CO_CFG_UAP_EDDSA_SIGN_ADDR,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:861: TR01_CFG_UAP_MAC_AND_DESTROY_ADDR = APPLICATION_CO_CFG_UAP_MAC_AND_DESTROY_ADDR
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:875: TR01_CFG_UAP_PAIRING_KEY_WRITE_IDX,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:876: TR01_CFG_UAP_PAIRING_KEY_READ_IDX,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:877: TR01_CFG_UAP_PAIRING_KEY_INVALIDATE_IDX,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:887: TR01_CFG_UAP_ECC_KEY_GENERATE_IDX,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:888: TR01_CFG_UAP_ECC_KEY_STORE_IDX,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:889: TR01_CFG_UAP_ECC_KEY_READ_IDX,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:890: TR01_CFG_UAP_ECC_KEY_ERASE_IDX,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:891: TR01_CFG_UAP_ECDSA_SIGN_IDX,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:892: TR01_CFG_UAP_EDDSA_SIGN_IDX,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:896: TR01_CFG_UAP_MAC_AND_DESTROY_IDX,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:900: /** @brief Minimal size of one data slot in bytes */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:902: /** @brief Index of last data slot. TROPIC01 contains 512 slots indexed 0-511. */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:903: #define TR01_R_MEM_DATA_SLOT_MAX (511)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:910: /** @brief ECC key slot indexes */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:911: typedef enum lt_ecc_slot_t {
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:912: TR01_ECC_SLOT_0 = 0,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:913: TR01_ECC_SLOT_1,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:914: TR01_ECC_SLOT_2,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:915: TR01_ECC_SLOT_3,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:916: TR01_ECC_SLOT_4,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:917: TR01_ECC_SLOT_5,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:918: TR01_ECC_SLOT_6,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:919: TR01_ECC_SLOT_7,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:920: TR01_ECC_SLOT_8,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:921: TR01_ECC_SLOT_9,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:922: TR01_ECC_SLOT_10,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:923: TR01_ECC_SLOT_11,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:924: TR01_ECC_SLOT_12,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:925: TR01_ECC_SLOT_13,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:926: TR01_ECC_SLOT_14,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:927: TR01_ECC_SLOT_15,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:928: TR01_ECC_SLOT_16,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:929: TR01_ECC_SLOT_17,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:930: TR01_ECC_SLOT_18,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:931: TR01_ECC_SLOT_19,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:932: TR01_ECC_SLOT_20,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:933: TR01_ECC_SLOT_21,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:934: TR01_ECC_SLOT_22,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:935: TR01_ECC_SLOT_23,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:936: TR01_ECC_SLOT_24,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:937: TR01_ECC_SLOT_25,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:938: TR01_ECC_SLOT_26,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:939: TR01_ECC_SLOT_27,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:940: TR01_ECC_SLOT_28,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:941: TR01_ECC_SLOT_29,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:942: TR01_ECC_SLOT_30,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:943: TR01_ECC_SLOT_31,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:944: } lt_ecc_slot_t;
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:946: /** @brief Type of the Elliptic Curve used for the key pair. Used by the ECC_Key_Generate,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:947: * ECC_Key_Store and ECC_Key_Read L3 commands. */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:948: typedef enum lt_ecc_curve_type_t {
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:951: /** @brief Curve Ed25519. */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:952: TR01_CURVE_ED25519 = 2
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:953: } lt_ecc_curve_type_t;
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:955: /** @brief Length of public keys for P256 curve. */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:956: #define TR01_CURVE_P256_PUBKEY_LEN 64
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:957: /** @brief Length of public keys for ED25519 curve. */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:958: #define TR01_CURVE_ED25519_PUBKEY_LEN 32
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:959: /** @brief Common length of private keys for both P256 and ED25519 curves. */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:960: #define TR01_CURVE_PRIVKEY_LEN 32
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:962: /** @brief Origin of the Elliptic Curve private key used to derive the public key. Used by the
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:963: * ECC_Key_Read L3 command. */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:964: typedef enum lt_ecc_key_origin_t {
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:965: /** @brief Private key was generated via the ECC_Key_Generate L3 command. */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:966: TR01_KEY_GENERATED = 1,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:967: /** @brief Private key was stored via the ECC_Key_Store L3 command. */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:968: TR01_KEY_STORED = 2
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:969: } lt_ecc_key_origin_t;
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:971: /** @brief Length of the EC signature (RS) for both ECDSA and EDDSA. */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:972: #define TR01_ECDSA_EDDSA_SIGNATURE_LENGTH 64
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:999: /** @brief The size of returned MAC-and-Destroy data (secret/key) */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1000: #define TR01_MAC_AND_DESTROY_DATA_SIZE 32u
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1001: /** @brief Maximal number of Mac And Destroy tries possible with TROPIC01 */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1002: #define TR01_MACANDD_ROUNDS_MAX 128
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1004: /** @brief Mac-and-Destroy slot indexes */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1005: typedef enum lt_mac_and_destroy_slot_t {
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1006: TR01_MAC_AND_DESTROY_SLOT_0 = 0,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1007: TR01_MAC_AND_DESTROY_SLOT_1,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1008: TR01_MAC_AND_DESTROY_SLOT_2,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1009: TR01_MAC_AND_DESTROY_SLOT_3,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1010: TR01_MAC_AND_DESTROY_SLOT_4,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1011: TR01_MAC_AND_DESTROY_SLOT_5,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1012: TR01_MAC_AND_DESTROY_SLOT_6,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1013: TR01_MAC_AND_DESTROY_SLOT_7,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1014: TR01_MAC_AND_DESTROY_SLOT_8,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1015: TR01_MAC_AND_DESTROY_SLOT_9,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1016: TR01_MAC_AND_DESTROY_SLOT_10,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1017: TR01_MAC_AND_DESTROY_SLOT_11,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1018: TR01_MAC_AND_DESTROY_SLOT_12,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1019: TR01_MAC_AND_DESTROY_SLOT_13,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1020: TR01_MAC_AND_DESTROY_SLOT_14,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1021: TR01_MAC_AND_DESTROY_SLOT_15,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1022: TR01_MAC_AND_DESTROY_SLOT_16,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1023: TR01_MAC_AND_DESTROY_SLOT_17,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1024: TR01_MAC_AND_DESTROY_SLOT_18,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1025: TR01_MAC_AND_DESTROY_SLOT_19,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1026: TR01_MAC_AND_DESTROY_SLOT_20,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1027: TR01_MAC_AND_DESTROY_SLOT_21,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1028: TR01_MAC_AND_DESTROY_SLOT_22,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1029: TR01_MAC_AND_DESTROY_SLOT_23,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1030: TR01_MAC_AND_DESTROY_SLOT_24,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1031: TR01_MAC_AND_DESTROY_SLOT_25,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1032: TR01_MAC_AND_DESTROY_SLOT_26,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1033: TR01_MAC_AND_DESTROY_SLOT_27,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1034: TR01_MAC_AND_DESTROY_SLOT_28,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1035: TR01_MAC_AND_DESTROY_SLOT_29,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1036: TR01_MAC_AND_DESTROY_SLOT_30,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1037: TR01_MAC_AND_DESTROY_SLOT_31,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1038: TR01_MAC_AND_DESTROY_SLOT_32,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1039: TR01_MAC_AND_DESTROY_SLOT_33,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1040: TR01_MAC_AND_DESTROY_SLOT_34,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1041: TR01_MAC_AND_DESTROY_SLOT_35,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1042: TR01_MAC_AND_DESTROY_SLOT_36,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1043: TR01_MAC_AND_DESTROY_SLOT_37,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1044: TR01_MAC_AND_DESTROY_SLOT_38,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1045: TR01_MAC_AND_DESTROY_SLOT_39,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1046: TR01_MAC_AND_DESTROY_SLOT_40,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1047: TR01_MAC_AND_DESTROY_SLOT_41,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1048: TR01_MAC_AND_DESTROY_SLOT_42,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1049: TR01_MAC_AND_DESTROY_SLOT_43,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1050: TR01_MAC_AND_DESTROY_SLOT_44,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1051: TR01_MAC_AND_DESTROY_SLOT_45,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1052: TR01_MAC_AND_DESTROY_SLOT_46,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1053: TR01_MAC_AND_DESTROY_SLOT_47,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1054: TR01_MAC_AND_DESTROY_SLOT_48,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1055: TR01_MAC_AND_DESTROY_SLOT_49,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1056: TR01_MAC_AND_DESTROY_SLOT_50,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1057: TR01_MAC_AND_DESTROY_SLOT_51,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1058: TR01_MAC_AND_DESTROY_SLOT_52,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1059: TR01_MAC_AND_DESTROY_SLOT_53,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1060: TR01_MAC_AND_DESTROY_SLOT_54,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1061: TR01_MAC_AND_DESTROY_SLOT_55,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1062: TR01_MAC_AND_DESTROY_SLOT_56,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1063: TR01_MAC_AND_DESTROY_SLOT_57,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1064: TR01_MAC_AND_DESTROY_SLOT_58,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1065: TR01_MAC_AND_DESTROY_SLOT_59,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1066: TR01_MAC_AND_DESTROY_SLOT_60,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1067: TR01_MAC_AND_DESTROY_SLOT_61,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1068: TR01_MAC_AND_DESTROY_SLOT_62,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1069: TR01_MAC_AND_DESTROY_SLOT_63,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1070: TR01_MAC_AND_DESTROY_SLOT_64,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1071: TR01_MAC_AND_DESTROY_SLOT_65,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1072: TR01_MAC_AND_DESTROY_SLOT_66,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1073: TR01_MAC_AND_DESTROY_SLOT_67,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1074: TR01_MAC_AND_DESTROY_SLOT_68,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1075: TR01_MAC_AND_DESTROY_SLOT_69,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1076: TR01_MAC_AND_DESTROY_SLOT_70,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1077: TR01_MAC_AND_DESTROY_SLOT_71,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1078: TR01_MAC_AND_DESTROY_SLOT_72,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1079: TR01_MAC_AND_DESTROY_SLOT_73,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1080: TR01_MAC_AND_DESTROY_SLOT_74,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1081: TR01_MAC_AND_DESTROY_SLOT_75,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1082: TR01_MAC_AND_DESTROY_SLOT_76,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1083: TR01_MAC_AND_DESTROY_SLOT_77,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1084: TR01_MAC_AND_DESTROY_SLOT_78,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1085: TR01_MAC_AND_DESTROY_SLOT_79,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1086: TR01_MAC_AND_DESTROY_SLOT_80,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1087: TR01_MAC_AND_DESTROY_SLOT_81,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1088: TR01_MAC_AND_DESTROY_SLOT_82,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1089: TR01_MAC_AND_DESTROY_SLOT_83,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1090: TR01_MAC_AND_DESTROY_SLOT_84,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1091: TR01_MAC_AND_DESTROY_SLOT_85,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1092: TR01_MAC_AND_DESTROY_SLOT_86,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1093: TR01_MAC_AND_DESTROY_SLOT_87,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1094: TR01_MAC_AND_DESTROY_SLOT_88,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1095: TR01_MAC_AND_DESTROY_SLOT_89,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1096: TR01_MAC_AND_DESTROY_SLOT_90,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1097: TR01_MAC_AND_DESTROY_SLOT_91,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1098: TR01_MAC_AND_DESTROY_SLOT_92,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1099: TR01_MAC_AND_DESTROY_SLOT_93,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1100: TR01_MAC_AND_DESTROY_SLOT_94,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1101: TR01_MAC_AND_DESTROY_SLOT_95,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1102: TR01_MAC_AND_DESTROY_SLOT_96,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1103: TR01_MAC_AND_DESTROY_SLOT_97,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1104: TR01_MAC_AND_DESTROY_SLOT_98,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1105: TR01_MAC_AND_DESTROY_SLOT_99,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1106: TR01_MAC_AND_DESTROY_SLOT_100,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1107: TR01_MAC_AND_DESTROY_SLOT_101,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1108: TR01_MAC_AND_DESTROY_SLOT_102,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1109: TR01_MAC_AND_DESTROY_SLOT_103,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1110: TR01_MAC_AND_DESTROY_SLOT_104,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1111: TR01_MAC_AND_DESTROY_SLOT_105,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1112: TR01_MAC_AND_DESTROY_SLOT_106,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1113: TR01_MAC_AND_DESTROY_SLOT_107,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1114: TR01_MAC_AND_DESTROY_SLOT_108,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1115: TR01_MAC_AND_DESTROY_SLOT_109,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1116: TR01_MAC_AND_DESTROY_SLOT_110,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1117: TR01_MAC_AND_DESTROY_SLOT_111,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1118: TR01_MAC_AND_DESTROY_SLOT_112,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1119: TR01_MAC_AND_DESTROY_SLOT_113,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1120: TR01_MAC_AND_DESTROY_SLOT_114,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1121: TR01_MAC_AND_DESTROY_SLOT_115,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1122: TR01_MAC_AND_DESTROY_SLOT_116,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1123: TR01_MAC_AND_DESTROY_SLOT_117,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1124: TR01_MAC_AND_DESTROY_SLOT_118,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1125: TR01_MAC_AND_DESTROY_SLOT_119,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1126: TR01_MAC_AND_DESTROY_SLOT_120,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1127: TR01_MAC_AND_DESTROY_SLOT_121,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1128: TR01_MAC_AND_DESTROY_SLOT_122,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1129: TR01_MAC_AND_DESTROY_SLOT_123,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1130: TR01_MAC_AND_DESTROY_SLOT_124,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1131: TR01_MAC_AND_DESTROY_SLOT_125,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1132: TR01_MAC_AND_DESTROY_SLOT_126,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1133: TR01_MAC_AND_DESTROY_SLOT_127
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1134: } lt_mac_and_destroy_slot_t;
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1141: /** @brief Macro to control which session can access command targeting content of pairing key SH0 */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1142: #define LT_TO_PAIRING_KEY_SH0(x) ((x) << 0)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1143: /** @brief Macro to control which session can access command targeting content of pairing key SH1 */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1144: #define LT_TO_PAIRING_KEY_SH1(x) ((x) << 8)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1145: /** @brief Macro to control which session can access command targeting content of pairing key SH2 */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1146: #define LT_TO_PAIRING_KEY_SH2(x) ((x) << 16)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1147: /** @brief Macro to control which session can access command targeting content of pairing key SH3 */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1148: #define LT_TO_PAIRING_KEY_SH3(x) ((x) << 24)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1150: /** @brief Macro to control which session can access command targeting counter 0-3 */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1152: /** @brief Macro to control which session can access command targeting counter 4-7 */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1154: /** @brief Macro to control which session can access command targeting counter 8-11 */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1156: /** @brief Macro to control which session can access command targeting counter 12-15 */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1159: /** @brief Macro to control which session can access command targeting ECC_SLOT 0-7 */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1160: #define LT_TO_ECC_KEY_SLOT_0_7(x) ((x) << 0)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1161: /** @brief Macro to control which session can access command targeting ECC_SLOT 8-15 */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1162: #define LT_TO_ECC_KEY_SLOT_8_15(x) ((x) << 8)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1163: /** @brief Macro to control which session can access command targeting ECC_SLOT 16-23 */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1164: #define LT_TO_ECC_KEY_SLOT_16_23(x) ((x) << 16)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1165: /** @brief Macro to control which session can access command targeting ECC_SLOT 24-31 */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1166: #define LT_TO_ECC_KEY_SLOT_24_31(x) ((x) << 24)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1168: /** @brief Macro to control which session can access command targeting MACANDD slot 0-31 */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1169: #define LT_TO_MACANDD_SLOT_0_31(x) ((x) << APPLICATION_CO_CFG_UAP_MAC_AND_DESTROY_MACANDD_0_31_POS)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1170: /** @brief Macro to control which session can access command targeting MACANDD slot 32-63 */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1171: #define LT_TO_MACANDD_SLOT_32_63(x) ((x) << APPLICATION_CO_CFG_UAP_MAC_AND_DESTROY_MACANDD_32_63_POS)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1172: /** @brief Macro to control which session can access command targeting MACANDD slot 64-95 */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1173: #define LT_TO_MACANDD_SLOT_64_95(x) ((x) << APPLICATION_CO_CFG_UAP_MAC_AND_DESTROY_MACANDD_64_95_POS)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1174: /** @brief Macro to control which session can access command targeting MACANDD slot 96-127 */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1175: #define LT_TO_MACANDD_SLOT_96_127(x) ((x) << APPLICATION_CO_CFG_UAP_MAC_AND_DESTROY_MACANDD_96_127_POS)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1177: /** @brief Macro to control if session SH0 has access to a specific command */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1179: /** @brief Macro to control if session SH1 has access to a specific command */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1181: /** @brief Macro to control if session SH2 has access to a specific command */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_common.h:1183: /** @brief Macro to control if session SH3 has access to a specific command */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:43: * @param pkey_index     Index of pairing public key
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:44: * @param host_eph_keys  Host MCU ephemeral keys, used to finish secure session establishment in
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:48: lt_ret_t lt_out__session_start(lt_handle_t *h, const lt_pkey_index_t pkey_index,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:49: lt_host_eph_keys_t *host_eph_keys);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:54: * Designed to be used together with `lt_out__session_start()`, `lt_l2_send()` and `lt_l2_receive()`.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:59: * @param stpub          STPUB from device's certificate
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:60: * @param pkey_index     Index of pairing public key
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:61: * @param shipriv        Secure host private key
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:62: * @param shipub         Secure host public key
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:63: * @param host_eph_keys  Host MCU ephemeral keys, must be filled by lt_out__session_start() and used to
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:67: lt_ret_t lt_in__session_start(lt_handle_t *h, const uint8_t *stpub, const lt_pkey_index_t pkey_index,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:68: const uint8_t *shipriv, const uint8_t *shipub,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:69: lt_host_eph_keys_t *host_eph_keys);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:96: * @brief Encodes Pairing_Key_Write command payload.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:101: * @param pairing_pub 32B of pubkey
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:102: * @param slot        Pairing key slot index
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:105: lt_ret_t lt_out__pairing_key_write(lt_handle_t *h, const uint8_t *pairing_pub,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:106: const lt_pkey_index_t slot);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:108: * @brief Decodes Pairing_Key_Write result payload.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:115: lt_ret_t lt_in__pairing_key_write(lt_handle_t *h);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:118: * @brief Encodes Pairing_Key_Read command payload.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:123: * @param slot        Pairing key slot index
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:126: lt_ret_t lt_out__pairing_key_read(lt_handle_t *h, const lt_pkey_index_t slot);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:129: * @brief Decodes Pairing_Key_Read result payload.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:134: * @param pubkey      Buffer to receive pairing public key
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:137: lt_ret_t lt_in__pairing_key_read(lt_handle_t *h, uint8_t *pubkey);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:140: * @brief Encodes Pairing_Key_Invalidate command payload.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:145: * @param slot        Pairing key slot index
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:148: lt_ret_t lt_out__pairing_key_invalidate(lt_handle_t *h, const lt_pkey_index_t slot);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:151: * @brief Decodes Pairing_Key_Invalidate result payload.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:158: lt_ret_t lt_in__pairing_key_invalidate(lt_handle_t *h);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:276: * @param udata_slot  Memory's slot to be written
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:277: * @param data        Buffer of data to be written into R MEMORY slot
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:278: * @param data_size   Size of data to be written (valid range given by macros
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:282: lt_ret_t lt_out__r_mem_data_write(lt_handle_t *h, const uint16_t udata_slot, const uint8_t *data,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:301: * @param udata_slot  Slot to read data from
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:304: lt_ret_t lt_out__r_mem_data_read(lt_handle_t *h, const uint16_t udata_slot);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:326: * @param udata_slot  Slot to erase data from
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:329: lt_ret_t lt_out__r_mem_data_erase(lt_handle_t *h, const uint16_t udata_slot);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:365: * @brief Encodes ECC_Key_Generate command payload.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:370: * @param slot        ECC key slot to generate key in
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:371: * @param curve       ECC curve type to use for key generation
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:374: lt_ret_t lt_out__ecc_key_generate(lt_handle_t *h, const lt_ecc_slot_t slot,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:375: const lt_ecc_curve_type_t curve);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:378: * @brief Decodes ECC_Key_Generate result payload.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:385: lt_ret_t lt_in__ecc_key_generate(lt_handle_t *h);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:388: * @brief Encodes ECC_Key_Store command payload.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:393: * @param slot        ECC key slot to store key in
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:394: * @param curve       ECC curve type to use for key storage
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:395: * @param key         Ecc key to store, 32B length
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:398: lt_ret_t lt_out__ecc_key_store(lt_handle_t *h, const lt_ecc_slot_t slot,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:399: const lt_ecc_curve_type_t curve, const uint8_t *key);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:402: * @brief Decodes ECC_Key_Store result payload.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:409: lt_ret_t lt_in__ecc_key_store(lt_handle_t *h);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:412: * @brief Encodes ECC_Key_Read command payload.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:417: * @param slot        ECC key slot to read key from
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:420: lt_ret_t lt_out__ecc_key_read(lt_handle_t *h, const lt_ecc_slot_t slot);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:423: * @brief Decodes ECC_Key_Read result payload.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:428: * @param key            Buffer for retrieving a key; length depends on the type of key in the slot
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:429: * (32B for Ed25519, 64B for P256), according to *curve*
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:430: * @param key_max_size   Size of the key buffer
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:431: * @param curve          When the function executes successfully, the type of elliptic curve public key
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:433: * @param origin         When the function executes successfully, the origin of the public key
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:437: lt_ret_t lt_in__ecc_key_read(lt_handle_t *h, uint8_t *key, const uint8_t key_max_size,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:438: lt_ecc_curve_type_t *curve, lt_ecc_key_origin_t *origin);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:441: * @brief Encodes ECC_Key_Erase command payload.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:446: * @param slot        ECC key slot to erase key from
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:449: lt_ret_t lt_out__ecc_key_erase(lt_handle_t *h, const lt_ecc_slot_t slot);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:452: * @brief Decodes ECC_Key_Erase result payload.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:459: lt_ret_t lt_in__ecc_key_erase(lt_handle_t *h);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:462: * @brief Encodes ECDSA_Sign command payload.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:467: * @param slot         ECC key slot to use for signing
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:468: * @param msg_hash     Buffer containing a 32-byte hash of the message to sign
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:472: lt_ret_t lt_out__ecc_ecdsa_sign(lt_handle_t *h, const lt_ecc_slot_t slot, const uint8_t *msg_hash,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:476: * @brief Decodes ECDSA_Sign result payload.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:481: * @param rs          Buffer with a signature in a form of R and S bytes (should always have length
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:485: lt_ret_t lt_in__ecc_ecdsa_sign(lt_handle_t *h, uint8_t *rs);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:488: * @brief Encodes EDDSA_Sign command payload.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:493: * @param ecc_slot    ECC key slot to use for signing
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:494: * @param msg         Message to sign
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:498: lt_ret_t lt_out__ecc_eddsa_sign(lt_handle_t *h, const lt_ecc_slot_t ecc_slot, const uint8_t *msg,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:502: * @brief Decodes EDDSA_Sign result payload.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:507: * @param rs          Buffer with a signature in a form of R and S bytes (should always have length
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:511: lt_ret_t lt_in__ecc_eddsa_sign(lt_handle_t *h, uint8_t *rs);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:583: * @brief Encodes MAC_And_Destroy command payload.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:588: * @param slot        Slot to use for MAC and destroy operation
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:592: lt_ret_t lt_out__mac_and_destroy(lt_handle_t *h, lt_mac_and_destroy_slot_t slot,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:596: * @brief Decodes MAC_And_Destroy result payload.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_l3.h:604: lt_ret_t lt_in__mac_and_destroy(lt_handle_t *h, uint8_t *data_in);
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_logging.h:6: * @brief Macros for logging.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_logging.h:22: /** @brief Dummy macro used when no logging is configured. */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_logging.h:64: // are function calls passed to the macros. Without the helper variables
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_macros.h:1: #ifndef LT_LIBTROPIC_MACROS
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_macros.h:2: #define LT_LIBTROPIC_MACROS
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_macros.h:5: * @file libtropic_macros.h
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_macros.h:6: * @brief Various helper macros.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_macros.h:23: *  @details This macro uses "statement expressions", which prevent double evaluation in contrast
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_macros.h:24: *           to standard macros.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_macros.h:35: *  @details This macro uses "statement expressions", which prevent double evaluation in contrast
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_macros.h:36: *           to standard macros.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_macros.h:83: #endif  // LT_LIBTROPIC_MACROS
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_port.h:102: * @brief Platform defined function used to specify reading of an interrupt pin, used as a signal that
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\libtropic_port.h:115: * @note This function should use some cryptographically secure mechanism to generate the random bytes.
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:23: APPLICATION_CO_CFG_UAP_PAIRING_KEY_WRITE_ADDR = 0X20,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:24: APPLICATION_CO_CFG_UAP_PAIRING_KEY_READ_ADDR = 0X24,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:25: APPLICATION_CO_CFG_UAP_PAIRING_KEY_INVALIDATE_ADDR = 0X28,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:35: APPLICATION_CO_CFG_UAP_ECC_KEY_GENERATE_ADDR = 0X130,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:36: APPLICATION_CO_CFG_UAP_ECC_KEY_STORE_ADDR = 0X134,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:37: APPLICATION_CO_CFG_UAP_ECC_KEY_READ_ADDR = 0X138,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:38: APPLICATION_CO_CFG_UAP_ECC_KEY_ERASE_ADDR = 0X13C,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:39: APPLICATION_CO_CFG_UAP_ECDSA_SIGN_ADDR = 0X140,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:40: APPLICATION_CO_CFG_UAP_EDDSA_SIGN_ADDR = 0X144,
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:44: APPLICATION_CO_CFG_UAP_MAC_AND_DESTROY_ADDR = 0X160
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:57: /* CFG_UAP_PAIRING_KEY_WRITE register fields */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:59: #define APPLICATION_CO_CFG_UAP_PAIRING_KEY_WRITE_WRITE_PKEY_SLOT_0_MASK GENMASK(7, 0)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:60: #define APPLICATION_CO_CFG_UAP_PAIRING_KEY_WRITE_WRITE_PKEY_SLOT_0_POS 0
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:62: #define APPLICATION_CO_CFG_UAP_PAIRING_KEY_WRITE_WRITE_PKEY_SLOT_1_MASK GENMASK(15, 8)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:63: #define APPLICATION_CO_CFG_UAP_PAIRING_KEY_WRITE_WRITE_PKEY_SLOT_1_POS 8
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:65: #define APPLICATION_CO_CFG_UAP_PAIRING_KEY_WRITE_WRITE_PKEY_SLOT_2_MASK GENMASK(23, 16)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:66: #define APPLICATION_CO_CFG_UAP_PAIRING_KEY_WRITE_WRITE_PKEY_SLOT_2_POS 16
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:68: #define APPLICATION_CO_CFG_UAP_PAIRING_KEY_WRITE_WRITE_PKEY_SLOT_3_MASK GENMASK(31, 24)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:69: #define APPLICATION_CO_CFG_UAP_PAIRING_KEY_WRITE_WRITE_PKEY_SLOT_3_POS 24
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:71: /* CFG_UAP_PAIRING_KEY_READ register fields */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:73: #define APPLICATION_CO_CFG_UAP_PAIRING_KEY_READ_READ_PKEY_SLOT_0_MASK GENMASK(7, 0)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:74: #define APPLICATION_CO_CFG_UAP_PAIRING_KEY_READ_READ_PKEY_SLOT_0_POS 0
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:76: #define APPLICATION_CO_CFG_UAP_PAIRING_KEY_READ_READ_PKEY_SLOT_1_MASK GENMASK(15, 8)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:77: #define APPLICATION_CO_CFG_UAP_PAIRING_KEY_READ_READ_PKEY_SLOT_1_POS 8
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:79: #define APPLICATION_CO_CFG_UAP_PAIRING_KEY_READ_READ_PKEY_SLOT_2_MASK GENMASK(23, 16)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:80: #define APPLICATION_CO_CFG_UAP_PAIRING_KEY_READ_READ_PKEY_SLOT_2_POS 16
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:82: #define APPLICATION_CO_CFG_UAP_PAIRING_KEY_READ_READ_PKEY_SLOT_3_MASK GENMASK(31, 24)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:83: #define APPLICATION_CO_CFG_UAP_PAIRING_KEY_READ_READ_PKEY_SLOT_3_POS 24
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:85: /* CFG_UAP_PAIRING_KEY_INVALIDATE register fields */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:87: #define APPLICATION_CO_CFG_UAP_PAIRING_KEY_INVALIDATE_INVALIDATE_PKEY_SLOT_0_MASK GENMASK(7, 0)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:88: #define APPLICATION_CO_CFG_UAP_PAIRING_KEY_INVALIDATE_INVALIDATE_PKEY_SLOT_0_POS 0
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:90: #define APPLICATION_CO_CFG_UAP_PAIRING_KEY_INVALIDATE_INVALIDATE_PKEY_SLOT_1_MASK GENMASK(15, 8)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:91: #define APPLICATION_CO_CFG_UAP_PAIRING_KEY_INVALIDATE_INVALIDATE_PKEY_SLOT_1_POS 8
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:93: #define APPLICATION_CO_CFG_UAP_PAIRING_KEY_INVALIDATE_INVALIDATE_PKEY_SLOT_2_MASK GENMASK(23, 16)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:94: #define APPLICATION_CO_CFG_UAP_PAIRING_KEY_INVALIDATE_INVALIDATE_PKEY_SLOT_2_POS 16
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:96: #define APPLICATION_CO_CFG_UAP_PAIRING_KEY_INVALIDATE_INVALIDATE_PKEY_SLOT_3_MASK GENMASK(31, 24)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:97: #define APPLICATION_CO_CFG_UAP_PAIRING_KEY_INVALIDATE_INVALIDATE_PKEY_SLOT_3_POS 24
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:135: #define APPLICATION_CO_CFG_UAP_R_MEM_DATA_WRITE_WRITE_UDATA_SLOT_0_127_MASK GENMASK(7, 0)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:136: #define APPLICATION_CO_CFG_UAP_R_MEM_DATA_WRITE_WRITE_UDATA_SLOT_0_127_POS 0
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:138: #define APPLICATION_CO_CFG_UAP_R_MEM_DATA_WRITE_WRITE_UDATA_SLOT_128_255_MASK GENMASK(15, 8)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:139: #define APPLICATION_CO_CFG_UAP_R_MEM_DATA_WRITE_WRITE_UDATA_SLOT_128_255_POS 8
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:141: #define APPLICATION_CO_CFG_UAP_R_MEM_DATA_WRITE_WRITE_UDATA_SLOT_256_383_MASK GENMASK(23, 16)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:142: #define APPLICATION_CO_CFG_UAP_R_MEM_DATA_WRITE_WRITE_UDATA_SLOT_256_383_POS 16
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:144: #define APPLICATION_CO_CFG_UAP_R_MEM_DATA_WRITE_WRITE_UDATA_SLOT_384_511_MASK GENMASK(31, 24)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:145: #define APPLICATION_CO_CFG_UAP_R_MEM_DATA_WRITE_WRITE_UDATA_SLOT_384_511_POS 24
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:149: #define APPLICATION_CO_CFG_UAP_R_MEM_DATA_READ_READ_UDATA_SLOT_0_127_MASK GENMASK(7, 0)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:150: #define APPLICATION_CO_CFG_UAP_R_MEM_DATA_READ_READ_UDATA_SLOT_0_127_POS 0
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:152: #define APPLICATION_CO_CFG_UAP_R_MEM_DATA_READ_READ_UDATA_SLOT_128_255_MASK GENMASK(15, 8)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:153: #define APPLICATION_CO_CFG_UAP_R_MEM_DATA_READ_READ_UDATA_SLOT_128_255_POS 8
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:155: #define APPLICATION_CO_CFG_UAP_R_MEM_DATA_READ_READ_UDATA_SLOT_256_383_MASK GENMASK(23, 16)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:156: #define APPLICATION_CO_CFG_UAP_R_MEM_DATA_READ_READ_UDATA_SLOT_256_383_POS 16
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:158: #define APPLICATION_CO_CFG_UAP_R_MEM_DATA_READ_READ_UDATA_SLOT_384_511_MASK GENMASK(31, 24)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:159: #define APPLICATION_CO_CFG_UAP_R_MEM_DATA_READ_READ_UDATA_SLOT_384_511_POS 24
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:163: #define APPLICATION_CO_CFG_UAP_R_MEM_DATA_ERASE_ERASE_UDATA_SLOT_0_127_MASK GENMASK(7, 0)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:164: #define APPLICATION_CO_CFG_UAP_R_MEM_DATA_ERASE_ERASE_UDATA_SLOT_0_127_POS 0
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:166: #define APPLICATION_CO_CFG_UAP_R_MEM_DATA_ERASE_ERASE_UDATA_SLOT_128_255_MASK GENMASK(15, 8)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:167: #define APPLICATION_CO_CFG_UAP_R_MEM_DATA_ERASE_ERASE_UDATA_SLOT_128_255_POS 8
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:169: #define APPLICATION_CO_CFG_UAP_R_MEM_DATA_ERASE_ERASE_UDATA_SLOT_256_383_MASK GENMASK(23, 16)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:170: #define APPLICATION_CO_CFG_UAP_R_MEM_DATA_ERASE_ERASE_UDATA_SLOT_256_383_POS 16
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:172: #define APPLICATION_CO_CFG_UAP_R_MEM_DATA_ERASE_ERASE_UDATA_SLOT_384_511_MASK GENMASK(31, 24)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:173: #define APPLICATION_CO_CFG_UAP_R_MEM_DATA_ERASE_ERASE_UDATA_SLOT_384_511_POS 24
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:180: /* CFG_UAP_ECC_KEY_GENERATE register fields */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:182: #define APPLICATION_CO_CFG_UAP_ECC_KEY_GENERATE_GEN_ECCKEY_SLOT_0_7_MASK GENMASK(7, 0)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:183: #define APPLICATION_CO_CFG_UAP_ECC_KEY_GENERATE_GEN_ECCKEY_SLOT_0_7_POS 0
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:185: #define APPLICATION_CO_CFG_UAP_ECC_KEY_GENERATE_GEN_ECCKEY_SLOT_8_15_MASK GENMASK(15, 8)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:186: #define APPLICATION_CO_CFG_UAP_ECC_KEY_GENERATE_GEN_ECCKEY_SLOT_8_15_POS 8
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:188: #define APPLICATION_CO_CFG_UAP_ECC_KEY_GENERATE_GEN_ECCKEY_SLOT_16_23_MASK GENMASK(23, 16)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:189: #define APPLICATION_CO_CFG_UAP_ECC_KEY_GENERATE_GEN_ECCKEY_SLOT_16_23_POS 16
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:191: #define APPLICATION_CO_CFG_UAP_ECC_KEY_GENERATE_GEN_ECCKEY_SLOT_24_31_MASK GENMASK(31, 24)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:192: #define APPLICATION_CO_CFG_UAP_ECC_KEY_GENERATE_GEN_ECCKEY_SLOT_24_31_POS 24
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:194: /* CFG_UAP_ECC_KEY_STORE register fields */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:196: #define APPLICATION_CO_CFG_UAP_ECC_KEY_STORE_STORE_ECCKEY_SLOT_0_7_MASK GENMASK(7, 0)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:197: #define APPLICATION_CO_CFG_UAP_ECC_KEY_STORE_STORE_ECCKEY_SLOT_0_7_POS 0
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:199: #define APPLICATION_CO_CFG_UAP_ECC_KEY_STORE_STORE_ECCKEY_SLOT_8_15_MASK GENMASK(15, 8)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:200: #define APPLICATION_CO_CFG_UAP_ECC_KEY_STORE_STORE_ECCKEY_SLOT_8_15_POS 8
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:202: #define APPLICATION_CO_CFG_UAP_ECC_KEY_STORE_STORE_ECCKEY_SLOT_16_23_MASK GENMASK(23, 16)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:203: #define APPLICATION_CO_CFG_UAP_ECC_KEY_STORE_STORE_ECCKEY_SLOT_16_23_POS 16
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:205: #define APPLICATION_CO_CFG_UAP_ECC_KEY_STORE_STORE_ECCKEY_SLOT_24_31_MASK GENMASK(31, 24)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:206: #define APPLICATION_CO_CFG_UAP_ECC_KEY_STORE_STORE_ECCKEY_SLOT_24_31_POS 24
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:208: /* CFG_UAP_ECC_KEY_READ register fields */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:210: #define APPLICATION_CO_CFG_UAP_ECC_KEY_READ_READ_ECCKEY_SLOT_0_7_MASK GENMASK(7, 0)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:211: #define APPLICATION_CO_CFG_UAP_ECC_KEY_READ_READ_ECCKEY_SLOT_0_7_POS 0
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:213: #define APPLICATION_CO_CFG_UAP_ECC_KEY_READ_READ_ECCKEY_SLOT_8_15_MASK GENMASK(15, 8)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:214: #define APPLICATION_CO_CFG_UAP_ECC_KEY_READ_READ_ECCKEY_SLOT_8_15_POS 8
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:216: #define APPLICATION_CO_CFG_UAP_ECC_KEY_READ_READ_ECCKEY_SLOT_16_23_MASK GENMASK(23, 16)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:217: #define APPLICATION_CO_CFG_UAP_ECC_KEY_READ_READ_ECCKEY_SLOT_16_23_POS 16
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:219: #define APPLICATION_CO_CFG_UAP_ECC_KEY_READ_READ_ECCKEY_SLOT_24_31_MASK GENMASK(31, 24)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:220: #define APPLICATION_CO_CFG_UAP_ECC_KEY_READ_READ_ECCKEY_SLOT_24_31_POS 24
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:222: /* CFG_UAP_ECC_KEY_ERASE register fields */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:224: #define APPLICATION_CO_CFG_UAP_ECC_KEY_ERASE_ERASE_ECCKEY_SLOT_0_7_MASK GENMASK(7, 0)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:225: #define APPLICATION_CO_CFG_UAP_ECC_KEY_ERASE_ERASE_ECCKEY_SLOT_0_7_POS 0
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:227: #define APPLICATION_CO_CFG_UAP_ECC_KEY_ERASE_ERASE_ECCKEY_SLOT_8_15_MASK GENMASK(15, 8)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:228: #define APPLICATION_CO_CFG_UAP_ECC_KEY_ERASE_ERASE_ECCKEY_SLOT_8_15_POS 8
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:230: #define APPLICATION_CO_CFG_UAP_ECC_KEY_ERASE_ERASE_ECCKEY_SLOT_16_23_MASK GENMASK(23, 16)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:231: #define APPLICATION_CO_CFG_UAP_ECC_KEY_ERASE_ERASE_ECCKEY_SLOT_16_23_POS 16
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:233: #define APPLICATION_CO_CFG_UAP_ECC_KEY_ERASE_ERASE_ECCKEY_SLOT_24_31_MASK GENMASK(31, 24)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:234: #define APPLICATION_CO_CFG_UAP_ECC_KEY_ERASE_ERASE_ECCKEY_SLOT_24_31_POS 24
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:236: /* CFG_UAP_ECDSA_SIGN register fields */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:238: #define APPLICATION_CO_CFG_UAP_ECDSA_SIGN_ECDSA_ECCKEY_SLOT_0_7_MASK GENMASK(7, 0)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:239: #define APPLICATION_CO_CFG_UAP_ECDSA_SIGN_ECDSA_ECCKEY_SLOT_0_7_POS 0
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:241: #define APPLICATION_CO_CFG_UAP_ECDSA_SIGN_ECDSA_ECCKEY_SLOT_8_15_MASK GENMASK(15, 8)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:242: #define APPLICATION_CO_CFG_UAP_ECDSA_SIGN_ECDSA_ECCKEY_SLOT_8_15_POS 8
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:244: #define APPLICATION_CO_CFG_UAP_ECDSA_SIGN_ECDSA_ECCKEY_SLOT_16_23_MASK GENMASK(23, 16)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:245: #define APPLICATION_CO_CFG_UAP_ECDSA_SIGN_ECDSA_ECCKEY_SLOT_16_23_POS 16
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:247: #define APPLICATION_CO_CFG_UAP_ECDSA_SIGN_ECDSA_ECCKEY_SLOT_24_31_MASK GENMASK(31, 24)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:248: #define APPLICATION_CO_CFG_UAP_ECDSA_SIGN_ECDSA_ECCKEY_SLOT_24_31_POS 24
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:250: /* CFG_UAP_EDDSA_SIGN register fields */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:252: #define APPLICATION_CO_CFG_UAP_EDDSA_SIGN_EDDSA_ECCKEY_SLOT_0_7_MASK GENMASK(7, 0)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:253: #define APPLICATION_CO_CFG_UAP_EDDSA_SIGN_EDDSA_ECCKEY_SLOT_0_7_POS 0
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:255: #define APPLICATION_CO_CFG_UAP_EDDSA_SIGN_EDDSA_ECCKEY_SLOT_8_15_MASK GENMASK(15, 8)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:256: #define APPLICATION_CO_CFG_UAP_EDDSA_SIGN_EDDSA_ECCKEY_SLOT_8_15_POS 8
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:258: #define APPLICATION_CO_CFG_UAP_EDDSA_SIGN_EDDSA_ECCKEY_SLOT_16_23_MASK GENMASK(23, 16)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:259: #define APPLICATION_CO_CFG_UAP_EDDSA_SIGN_EDDSA_ECCKEY_SLOT_16_23_POS 16
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:261: #define APPLICATION_CO_CFG_UAP_EDDSA_SIGN_EDDSA_ECCKEY_SLOT_24_31_MASK GENMASK(31, 24)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:262: #define APPLICATION_CO_CFG_UAP_EDDSA_SIGN_EDDSA_ECCKEY_SLOT_24_31_POS 24
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:306: /* CFG_UAP_MAC_AND_DESTROY register fields */
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:308: #define APPLICATION_CO_CFG_UAP_MAC_AND_DESTROY_MACANDD_0_31_MASK GENMASK(7, 0)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:309: #define APPLICATION_CO_CFG_UAP_MAC_AND_DESTROY_MACANDD_0_31_POS 0
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:311: #define APPLICATION_CO_CFG_UAP_MAC_AND_DESTROY_MACANDD_32_63_MASK GENMASK(15, 8)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:312: #define APPLICATION_CO_CFG_UAP_MAC_AND_DESTROY_MACANDD_32_63_POS 8
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:314: #define APPLICATION_CO_CFG_UAP_MAC_AND_DESTROY_MACANDD_64_95_MASK GENMASK(23, 16)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:315: #define APPLICATION_CO_CFG_UAP_MAC_AND_DESTROY_MACANDD_64_95_POS 16
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:317: #define APPLICATION_CO_CFG_UAP_MAC_AND_DESTROY_MACANDD_96_127_MASK GENMASK(31, 24)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_application_co.h:318: #define APPLICATION_CO_CFG_UAP_MAC_AND_DESTROY_MACANDD_96_127_POS 24
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_bootloader_co.h:81: #define BOOTLOADER_CO_CFG_SENSORS_ECC_BIT_FLIP_DIS_MASK BIT(13)
+C:\Users\mando\OneDrive\Desktop\newstm32\HardwarePrototype\Middlewares\TropicSquare\libtropic\include\tropic01_bootloader_co.h:82: #define BOOTLOADER_CO_CFG_SENSORS_ECC_BIT_FLIP_DIS_POS 13

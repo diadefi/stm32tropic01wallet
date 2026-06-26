@@ -1,0 +1,756 @@
+#include "wallet_command.h"
+#include "wallet_core.h"
+#include "wallet_policy.h"
+
+#include <stdint.h>
+#include <stddef.h>
+#include <string.h>
+
+
+#define WALLET_KEYPOLICY_ERR_UNLOCK_MISSING  -22
+#define WALLET_KEYPOLICY_ERR_UNLOCK_BAD      -23
+
+#define WALLET_MVP_UNLOCK_SECRET             "mvp-regtest-unlock"
+static int wallet_cmd_hex_nibble(char c, uint8_t *out)
+{
+    if (out == NULL)
+    {
+        return 0;
+    }
+
+    if (c >= '0' && c <= '9')
+    {
+        *out = (uint8_t)(c - '0');
+        return 1;
+    }
+
+    if (c >= 'a' && c <= 'f')
+    {
+        *out = (uint8_t)(10 + (c - 'a'));
+        return 1;
+    }
+
+    if (c >= 'A' && c <= 'F')
+    {
+        *out = (uint8_t)(10 + (c - 'A'));
+        return 1;
+    }
+
+    return 0;
+}
+
+static int wallet_cmd_find_value(const char *text,
+                                 const char *key,
+                                 const char **value_start,
+                                 uint32_t *value_len)
+{
+    const char *p;
+    const char *v;
+    const char *e;
+    uint32_t key_len;
+
+    if (text == NULL || key == NULL || value_start == NULL || value_len == NULL)
+    {
+        return 0;
+    }
+
+    key_len = (uint32_t)strlen(key);
+    p = strstr(text, key);
+
+    if (p == NULL)
+    {
+        return 0;
+    }
+
+    v = p + key_len;
+
+    if (*v != '=')
+    {
+        return 0;
+    }
+
+    v++;
+
+    e = v;
+
+    while (*e != '\0' && *e != '\r' && *e != '\n')
+    {
+        e++;
+    }
+
+    if (e == v)
+    {
+        return 0;
+    }
+
+    *value_start = v;
+    *value_len = (uint32_t)(e - v);
+
+    return 1;
+}
+
+
+static int wallet_cmd_value_equals(const char *text,
+                                   const char *key,
+                                   const char *expected)
+{
+    const char *v;
+    uint32_t value_len;
+    uint32_t expected_len;
+
+    if (text == NULL || key == NULL || expected == NULL)
+    {
+        return 0;
+    }
+
+    if (!wallet_cmd_find_value(text, key, &v, &value_len))
+    {
+        return 0;
+    }
+
+    expected_len = (uint32_t)strlen(expected);
+
+    if (value_len != expected_len)
+    {
+        return 0;
+    }
+
+    return (strncmp(v, expected, expected_len) == 0);
+}
+
+static int wallet_command_check_unlock_text(const char *command_text)
+{
+    const char *v;
+    uint32_t value_len;
+
+    if (command_text == NULL)
+    {
+        return WALLET_KEYPOLICY_ERR_UNLOCK_MISSING;
+    }
+
+    if (!wallet_cmd_find_value(command_text, "UNLOCK_SECRET", &v, &value_len))
+    {
+        return WALLET_KEYPOLICY_ERR_UNLOCK_MISSING;
+    }
+
+    if (!wallet_cmd_value_equals(command_text,
+                                 "UNLOCK_SECRET",
+                                 WALLET_MVP_UNLOCK_SECRET))
+    {
+        return WALLET_KEYPOLICY_ERR_UNLOCK_BAD;
+    }
+
+    return 0;
+}
+static int wallet_cmd_parse_hex_fixed(const char *text,
+                                      const char *key,
+                                      uint8_t *out,
+                                      uint32_t out_len)
+{
+    const char *v;
+    uint32_t value_len;
+    uint32_t expected_hex_len;
+    uint8_t hi;
+    uint8_t lo;
+
+    if (out == NULL)
+    {
+        return 0;
+    }
+
+    if (!wallet_cmd_find_value(text, key, &v, &value_len))
+    {
+        return 0;
+    }
+
+    expected_hex_len = out_len * 2U;
+
+    if (value_len != expected_hex_len)
+    {
+        return 0;
+    }
+
+    for (uint32_t i = 0; i < out_len; i++)
+    {
+        if (!wallet_cmd_hex_nibble(v[i * 2U], &hi))
+        {
+            return 0;
+        }
+
+        if (!wallet_cmd_hex_nibble(v[(i * 2U) + 1U], &lo))
+        {
+            return 0;
+        }
+
+        out[i] = (uint8_t)((hi << 4) | lo);
+    }
+
+    return 1;
+}
+
+static int wallet_cmd_parse_hex_var(const char *text,
+                                    const char *key,
+                                    uint8_t *out,
+                                    uint32_t out_size,
+                                    uint32_t *out_len)
+{
+    const char *v;
+    uint32_t value_len;
+    uint8_t hi;
+    uint8_t lo;
+
+    if (out == NULL || out_len == NULL)
+    {
+        return 0;
+    }
+
+    if (!wallet_cmd_find_value(text, key, &v, &value_len))
+    {
+        return 0;
+    }
+
+    if ((value_len == 0U) || ((value_len % 2U) != 0U))
+    {
+        return 0;
+    }
+
+    if ((value_len / 2U) > out_size)
+    {
+        return 0;
+    }
+
+    for (uint32_t i = 0; i < (value_len / 2U); i++)
+    {
+        if (!wallet_cmd_hex_nibble(v[i * 2U], &hi))
+        {
+            return 0;
+        }
+
+        if (!wallet_cmd_hex_nibble(v[(i * 2U) + 1U], &lo))
+        {
+            return 0;
+        }
+
+        out[i] = (uint8_t)((hi << 4) | lo);
+    }
+
+    *out_len = value_len / 2U;
+
+    return 1;
+}
+
+static int wallet_cmd_parse_u32(const char *text,
+                                const char *key,
+                                uint32_t *out)
+{
+    const char *v;
+    uint32_t value_len;
+    uint32_t value = 0;
+
+    if (out == NULL)
+    {
+        return 0;
+    }
+
+    if (!wallet_cmd_find_value(text, key, &v, &value_len))
+    {
+        return 0;
+    }
+
+    for (uint32_t i = 0; i < value_len; i++)
+    {
+        if (v[i] < '0' || v[i] > '9')
+        {
+            return 0;
+        }
+
+        value = (value * 10U) + (uint32_t)(v[i] - '0');
+    }
+
+    *out = value;
+
+    return 1;
+}
+
+static int wallet_cmd_parse_u64(const char *text,
+                                const char *key,
+                                uint64_t *out)
+{
+    const char *v;
+    uint32_t value_len;
+    uint64_t value = 0;
+
+    if (out == NULL)
+    {
+        return 0;
+    }
+
+    if (!wallet_cmd_find_value(text, key, &v, &value_len))
+    {
+        return 0;
+    }
+
+    for (uint32_t i = 0; i < value_len; i++)
+    {
+        if (v[i] < '0' || v[i] > '9')
+        {
+            return 0;
+        }
+
+        value = (value * 10ULL) + (uint64_t)(v[i] - '0');
+    }
+
+    *out = value;
+
+    return 1;
+}
+
+/*
+ * Public policy pre-check.
+ *
+ * wallet_uart.c calls this before key provider / TROPIC authorization.
+ * This prevents private key access for unsafe commands.
+ */
+
+
+static int wallet_cmd_parse_value_equals(const char *text,
+                                         const char *key,
+                                         const char *expected)
+{
+    const char *v;
+    uint32_t value_len;
+    uint32_t expected_len;
+
+    if (text == NULL || key == NULL || expected == NULL)
+    {
+        return 0;
+    }
+
+    if (!wallet_cmd_find_value(text, key, &v, &value_len))
+    {
+        return 0;
+    }
+
+    expected_len = (uint32_t)strlen(expected);
+
+    if (value_len != expected_len)
+    {
+        return 0;
+    }
+
+    for (uint32_t i = 0; i < expected_len; i++)
+    {
+        if (v[i] != expected[i])
+        {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+
+
+int wallet_command_check_policy_text(const char *command_text)
+{
+    int unlock_ret;
+
+    unlock_ret = wallet_command_check_unlock_text(command_text);
+
+    if (unlock_ret != 0)
+    {
+        return unlock_ret;
+    }
+
+    uint8_t prev_script_pubkey[252];
+    uint32_t prev_script_pubkey_len = 0;
+
+    uint8_t pay_script_pubkey[252];
+    uint32_t pay_script_pubkey_len = 0;
+
+    uint8_t change_script_pubkey[252];
+    uint32_t change_script_pubkey_len = 0;
+
+    uint64_t input_value_sats = 0ULL;
+    uint64_t pay_value_sats = 0ULL;
+    uint64_t change_value_sats = 0ULL;
+
+    wallet_policy_amounts_t policy_amounts;
+    int policy_ret;
+
+    if (command_text == NULL)
+    {
+        return WALLET_POLICY_ERR_NULL;
+    }
+
+    if (!wallet_cmd_parse_value_equals(command_text, "NETWORK", "REGTEST"))
+    {
+        return WALLET_POLICY_ERR_NETWORK_NOT_REGTEST;
+    }
+
+    memset(prev_script_pubkey, 0, sizeof(prev_script_pubkey));
+    memset(pay_script_pubkey, 0, sizeof(pay_script_pubkey));
+    memset(change_script_pubkey, 0, sizeof(change_script_pubkey));
+
+    if (!wallet_cmd_parse_u64(command_text, "INPUT_SATS", &input_value_sats))
+    {
+        return -12;
+    }
+
+    if (!wallet_cmd_parse_hex_var(command_text,
+                                  "PREV_SCRIPT",
+                                  prev_script_pubkey,
+                                  sizeof(prev_script_pubkey),
+                                  &prev_script_pubkey_len))
+    {
+        return -13;
+    }
+
+    if (!wallet_cmd_parse_hex_var(command_text,
+                                  "PAY_SCRIPT",
+                                  pay_script_pubkey,
+                                  sizeof(pay_script_pubkey),
+                                  &pay_script_pubkey_len))
+    {
+        return -14;
+    }
+
+    if (!wallet_cmd_parse_u64(command_text, "PAY_SATS", &pay_value_sats))
+    {
+        return -15;
+    }
+
+    if (!wallet_cmd_parse_hex_var(command_text,
+                                  "CHANGE_SCRIPT",
+                                  change_script_pubkey,
+                                  sizeof(change_script_pubkey),
+                                  &change_script_pubkey_len))
+    {
+        return -16;
+    }
+
+    if (!wallet_cmd_parse_u64(command_text, "CHANGE_SATS", &change_value_sats))
+    {
+        return -17;
+    }
+
+    policy_amounts.input_sats = input_value_sats;
+    policy_amounts.pay_sats = pay_value_sats;
+    policy_amounts.change_sats = change_value_sats;
+    policy_amounts.fee_sats = 0ULL;
+
+    policy_ret = wallet_policy_check_amounts(&policy_amounts);
+
+    if (policy_ret != WALLET_POLICY_OK)
+    {
+        return policy_ret;
+    }
+
+    policy_ret = wallet_policy_check_own_input_script(
+        prev_script_pubkey,
+        prev_script_pubkey_len
+    );
+
+    if (policy_ret != WALLET_POLICY_OK)
+    {
+        return policy_ret;
+    }
+
+    policy_ret = wallet_policy_check_allowed_pay_script(
+        pay_script_pubkey,
+        pay_script_pubkey_len
+    );
+
+    if (policy_ret != WALLET_POLICY_OK)
+    {
+        return policy_ret;
+    }
+
+    policy_ret = wallet_policy_check_own_change_script(
+        change_script_pubkey,
+        change_script_pubkey_len
+    );
+
+    if (policy_ret != WALLET_POLICY_OK)
+    {
+        return policy_ret;
+    }
+
+    return WALLET_POLICY_OK;
+}
+
+/*
+ * Core signing implementation.
+ *
+ * This parses transaction fields only.
+ * It does NOT parse PRIVKEY=.
+ *
+ * The private key is supplied separately by the caller.
+ */
+static int wallet_command_sign_text_core(
+    const char *command_text,
+    const uint8_t *private_key,
+    uint8_t *out_raw_tx,
+    uint32_t out_raw_tx_size,
+    uint32_t *out_raw_tx_len,
+    char *out_raw_tx_hex,
+    uint32_t out_raw_tx_hex_size)
+{
+    uint8_t prev_txid_le[32];
+
+    uint8_t prev_script_pubkey[252];
+    uint32_t prev_script_pubkey_len = 0;
+
+    uint8_t pay_script_pubkey[252];
+    uint32_t pay_script_pubkey_len = 0;
+
+    uint8_t change_script_pubkey[252];
+    uint32_t change_script_pubkey_len = 0;
+
+    uint32_t prev_vout = 0;
+    uint64_t input_value_sats = 0ULL;
+    uint64_t pay_value_sats = 0ULL;
+    uint64_t change_value_sats = 0ULL;
+
+    int ret;
+
+    if (command_text == NULL ||
+        private_key == NULL ||
+        out_raw_tx == NULL ||
+        out_raw_tx_len == NULL ||
+        out_raw_tx_hex == NULL)
+    {
+        return -1;
+    }
+
+    if (!wallet_cmd_parse_value_equals(command_text, "NETWORK", "REGTEST"))
+    {
+        return WALLET_POLICY_ERR_NETWORK_NOT_REGTEST;
+    }
+
+
+
+    memset(prev_txid_le, 0, sizeof(prev_txid_le));
+    memset(prev_script_pubkey, 0, sizeof(prev_script_pubkey));
+    memset(pay_script_pubkey, 0, sizeof(pay_script_pubkey));
+    memset(change_script_pubkey, 0, sizeof(change_script_pubkey));
+
+    /*
+     * For now, command expects TXID_LE, not normal big-endian display txid.
+     * Later we can add TXID_BE and reverse internally.
+     */
+    if (!wallet_cmd_parse_hex_fixed(command_text, "TXID_LE", prev_txid_le, 32U))
+    {
+        return -10;
+    }
+
+    if (!wallet_cmd_parse_u32(command_text, "VOUT", &prev_vout))
+    {
+        return -11;
+    }
+
+    if (!wallet_cmd_parse_u64(command_text, "INPUT_SATS", &input_value_sats))
+    {
+        return -12;
+    }
+
+    if (!wallet_cmd_parse_hex_var(command_text,
+                                  "PREV_SCRIPT",
+                                  prev_script_pubkey,
+                                  sizeof(prev_script_pubkey),
+                                  &prev_script_pubkey_len))
+    {
+        return -13;
+    }
+
+    if (!wallet_cmd_parse_hex_var(command_text,
+                                  "PAY_SCRIPT",
+                                  pay_script_pubkey,
+                                  sizeof(pay_script_pubkey),
+                                  &pay_script_pubkey_len))
+    {
+        return -14;
+    }
+
+    if (!wallet_cmd_parse_u64(command_text, "PAY_SATS", &pay_value_sats))
+    {
+        return -15;
+    }
+
+    if (!wallet_cmd_parse_hex_var(command_text,
+                                  "CHANGE_SCRIPT",
+                                  change_script_pubkey,
+                                  sizeof(change_script_pubkey),
+                                  &change_script_pubkey_len))
+    {
+        return -16;
+    }
+
+    if (!wallet_cmd_parse_u64(command_text, "CHANGE_SATS", &change_value_sats))
+    {
+        return -17;
+    }
+
+    /*
+     * Defense-in-depth policy check.
+     *
+     * wallet_uart.c should already have called wallet_command_check_policy_text()
+     * before key provider / TROPIC authorization. This repeats the same checks
+     * before actually building/signing the transaction.
+     */
+    {
+        wallet_policy_amounts_t policy_amounts;
+        int policy_ret;
+
+        policy_amounts.input_sats = input_value_sats;
+        policy_amounts.pay_sats = pay_value_sats;
+        policy_amounts.change_sats = change_value_sats;
+        policy_amounts.fee_sats = 0ULL;
+
+        policy_ret = wallet_policy_check_amounts(&policy_amounts);
+
+        if (policy_ret != WALLET_POLICY_OK)
+        {
+            return policy_ret;
+        }
+
+        policy_ret = wallet_policy_check_own_input_script(
+            prev_script_pubkey,
+            prev_script_pubkey_len
+        );
+
+        if (policy_ret != WALLET_POLICY_OK)
+        {
+            return policy_ret;
+        }
+
+        policy_ret = wallet_policy_check_allowed_pay_script(
+            pay_script_pubkey,
+            pay_script_pubkey_len
+        );
+
+        if (policy_ret != WALLET_POLICY_OK)
+        {
+            return policy_ret;
+        }
+
+        policy_ret = wallet_policy_check_own_change_script(
+            change_script_pubkey,
+            change_script_pubkey_len
+        );
+
+        if (policy_ret != WALLET_POLICY_OK)
+        {
+            return policy_ret;
+        }
+    }
+
+    ret = wallet_sign_p2pkh_2out_tx(
+        prev_txid_le,
+        prev_vout,
+        prev_script_pubkey,
+        prev_script_pubkey_len,
+        input_value_sats,
+
+        pay_script_pubkey,
+        pay_script_pubkey_len,
+        pay_value_sats,
+
+        change_script_pubkey,
+        change_script_pubkey_len,
+        change_value_sats,
+
+        private_key,
+
+        out_raw_tx,
+        out_raw_tx_size,
+        out_raw_tx_len
+    );
+
+    if (ret != 0)
+    {
+        return -30;
+    }
+
+    if (!wallet_bytes_to_hex(
+            out_raw_tx,
+            *out_raw_tx_len,
+            out_raw_tx_hex,
+            out_raw_tx_hex_size))
+    {
+        return -31;
+    }
+
+    return 0;
+}
+
+/*
+ * New clean API.
+ *
+ * Used by wallet_uart.c.
+ * The UART command does not contain PRIVKEY=.
+ */
+int wallet_command_sign_text_with_private_key(
+    const char *command_text,
+    const uint8_t *private_key,
+    uint8_t *out_raw_tx,
+    uint32_t out_raw_tx_size,
+    uint32_t *out_raw_tx_len,
+    char *out_raw_tx_hex,
+    uint32_t out_raw_tx_hex_size)
+{
+    return wallet_command_sign_text_core(
+        command_text,
+        private_key,
+        out_raw_tx,
+        out_raw_tx_size,
+        out_raw_tx_len,
+        out_raw_tx_hex,
+        out_raw_tx_hex_size
+    );
+}
+
+/*
+ * Legacy/debug API.
+ *
+ * This still supports old tests that include:
+ *
+ * PRIVKEY=...
+ *
+ * Do not use this from wallet_uart.c anymore.
+ */
+int wallet_command_sign_text(
+    const char *command_text,
+    uint8_t *out_raw_tx,
+    uint32_t out_raw_tx_size,
+    uint32_t *out_raw_tx_len,
+    char *out_raw_tx_hex,
+    uint32_t out_raw_tx_hex_size)
+{
+    uint8_t private_key[32];
+
+    if (command_text == NULL)
+    {
+        return -1;
+    }
+
+    memset(private_key, 0, sizeof(private_key));
+
+    if (!wallet_cmd_parse_hex_fixed(command_text, "PRIVKEY", private_key, 32U))
+    {
+        return -18;
+    }
+
+    return wallet_command_sign_text_core(
+        command_text,
+        private_key,
+        out_raw_tx,
+        out_raw_tx_size,
+        out_raw_tx_len,
+        out_raw_tx_hex,
+        out_raw_tx_hex_size
+    );
+}
+
+
+

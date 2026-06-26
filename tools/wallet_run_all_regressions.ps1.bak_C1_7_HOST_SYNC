@@ -1,0 +1,111 @@
+param(
+    [string]$Port = "COM3",
+    [string]$BitcoinCli = "C:\Program Files\Bitcoin\daemon\bitcoin-cli.exe",
+    [string]$Wallet = "stm32-host-live"
+)
+
+$ErrorActionPreference = "Stop"
+
+function Invoke-RegressionScript {
+    param(
+        [string]$Name,
+        [string]$ScriptPath,
+        [string]$ExpectedMarker,
+        [string[]]$ArgsList
+    )
+
+    Write-Host ""
+    Write-Host "============================================================"
+    Write-Host "RUN $Name"
+    Write-Host "============================================================"
+
+    $logPath = ".\tools\run_all_$Name.log.txt"
+
+    $output = & powershell.exe `
+        -NoProfile `
+        -ExecutionPolicy Bypass `
+        -File $ScriptPath `
+        @ArgsList 2>&1
+
+    $text = ($output | Out-String)
+
+    Set-Content -Path $logPath -Value $text -Encoding ascii
+
+    Write-Host $text
+
+    if ($text -notmatch [regex]::Escape($ExpectedMarker)) {
+        throw "$Name failed. Expected marker: $ExpectedMarker. Log: $logPath"
+    }
+
+    Write-Host "PASS $Name"
+}
+
+Write-Host ""
+Write-Host "MASTER_REGRESSION_START"
+Write-Host "PORT=$Port"
+Write-Host "BITCOIN_CLI=$BitcoinCli"
+Write-Host "WALLET=$Wallet"
+
+Invoke-RegressionScript `
+    -Name "UART_PROBE" `
+    -ScriptPath ".\tools\wallet_probe_info.ps1" `
+    -ExpectedMarker "UART_PROBE_PASS" `
+    -ArgsList @("-Port", $Port)
+
+Invoke-RegressionScript `
+    -Name "POSITIVE_FULL_LOOP" `
+    -ScriptPath ".\tools\wallet_regtest_full_loop.ps1" `
+    -ExpectedMarker "STM32_REGTEST_FULL_LOOP_PASS" `
+    -ArgsList @("-Port", $Port, "-BitcoinCli", $BitcoinCli, "-Wallet", $Wallet)
+
+Invoke-RegressionScript `
+    -Name "NEGATIVE_POLICY" `
+    -ScriptPath ".\tools\wallet_regtest_live_negative_policy.ps1" `
+    -ExpectedMarker "LIVE_NEGATIVE_POLICY_REGRESSION_PASS" `
+    -ArgsList @("-Port", $Port, "-BitcoinCli", $BitcoinCli, "-Wallet", $Wallet)
+
+Write-Host ""
+
+Write-Host ""
+Write-Host "============================================================"
+Write-Host "RUN SOURCE_AUDIT"
+Write-Host "============================================================"
+& ".\tools\wallet_source_audit.ps1"
+if ($LASTEXITCODE -ne 0) {
+    throw "SOURCE_AUDIT failed"
+}
+Write-Host ""
+Write-Host "PASS SOURCE_AUDIT"
+
+Write-Host ""
+Write-Host "============================================================"
+Write-Host "RUN TRUTH_LABEL_ASSERTIONS"
+Write-Host "============================================================"
+$truthPort = "COM3"
+if (Get-Variable -Name Port -Scope Local -ErrorAction SilentlyContinue) {
+    $truthPort = $Port
+}
+& ".\tools\wallet_assert_truth_labels.ps1" -Port $truthPort
+if ($LASTEXITCODE -ne 0) {
+    throw "TRUTH_LABEL_ASSERTIONS failed"
+}
+Write-Host ""
+Write-Host "PASS TRUTH_LABEL_ASSERTIONS"
+
+Write-Host ""
+Write-Host "============================================================"
+Write-Host "RUN UNLOCK_GATE"
+Write-Host "============================================================"
+$unlockPort = "COM3"
+if (Get-Variable -Name Port -Scope Local -ErrorAction SilentlyContinue) {
+    $unlockPort = $Port
+}
+& ".\tools\wallet_regtest_unlock_gate.ps1" -Port $unlockPort
+if ($LASTEXITCODE -ne 0) {
+    throw "UNLOCK_GATE failed"
+}
+Write-Host ""
+Write-Host "PASS UNLOCK_GATE"
+Write-Host "ALL_REGRESSIONS_PASS"
+
+

@@ -1,0 +1,88 @@
+param(
+    [string]$Port = "COM3",
+    [string]$BitcoinCli = "C:\Program Files\Bitcoin\daemon\bitcoin-cli.exe",
+    [string]$Wallet = "stm32-host-live"
+)
+
+$ErrorActionPreference = "Stop"
+
+function Invoke-Step {
+    param(
+        [string]$Name,
+        [string]$ScriptPath,
+        [string[]]$ArgsList = @()
+    )
+
+    Write-Host ""
+    Write-Host "============================================================"
+    Write-Host "RUN $Name"
+    Write-Host "============================================================"
+
+    if (-not (Test-Path $ScriptPath)) {
+        throw "$Name script not found: $ScriptPath"
+    }
+
+    & powershell.exe `
+        -NoProfile `
+        -ExecutionPolicy Bypass `
+        -File $ScriptPath `
+        @ArgsList
+
+    $code = $LASTEXITCODE
+
+    if ($code -ne 0) {
+        throw "$Name failed with exit code $code"
+    }
+
+    Write-Host ""
+    Write-Host "PASS $Name"
+}
+
+Write-Host ""
+Write-Host "MASTER_REGRESSION_START"
+Write-Host "PORT=$Port"
+Write-Host "BITCOIN_CLI=$BitcoinCli"
+Write-Host "WALLET=$Wallet"
+
+Invoke-Step `
+    -Name "UART_PROBE" `
+    -ScriptPath ".\tools\wallet_probe_info.ps1" `
+    -ArgsList @("-Port", $Port)
+
+
+Invoke-Step `
+    -Name "IDENTITY_PROBE" `
+    -ScriptPath ".\tools\wallet_probe_identity.ps1" `
+    -ArgsList @("-Port", $Port)
+Invoke-Step `
+    -Name "HOST_SYNC" `
+    -ScriptPath ".\tools\wallet_host_sync_regression.ps1" `
+    -ArgsList @("-Port", $Port)
+
+Invoke-Step `
+    -Name "POSITIVE_FULL_LOOP" `
+    -ScriptPath ".\tools\wallet_regtest_full_loop.ps1" `
+    -ArgsList @("-Port", $Port, "-BitcoinCli", $BitcoinCli, "-Wallet", $Wallet)
+
+Invoke-Step `
+    -Name "NEGATIVE_POLICY" `
+    -ScriptPath ".\tools\wallet_regtest_live_negative_policy.ps1" `
+    -ArgsList @("-Port", $Port, "-BitcoinCli", $BitcoinCli, "-Wallet", $Wallet)
+
+Invoke-Step `
+    -Name "SOURCE_AUDIT" `
+    -ScriptPath ".\tools\wallet_source_audit.ps1"
+
+Invoke-Step `
+    -Name "TRUTH_LABEL_ASSERTIONS" `
+    -ScriptPath ".\tools\wallet_assert_truth_labels.ps1" `
+    -ArgsList @("-Port", $Port)
+
+Invoke-Step `
+    -Name "UNLOCK_GATE" `
+    -ScriptPath ".\tools\wallet_regtest_unlock_gate.ps1" `
+    -ArgsList @("-Port", $Port)
+
+Write-Host ""
+Write-Host "ALL_REGRESSIONS_PASS"
+

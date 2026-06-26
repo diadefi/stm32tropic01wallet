@@ -1,0 +1,315 @@
+param(
+    [string]$BitcoinCli = "C:\Program Files\Bitcoin\daemon\bitcoin-cli.exe",
+    [string]$Wallet = "stm32-host-live",
+    [string]$Port = "COM3",
+    [uint64]$FundingSats = 100000
+)
+
+$ErrorActionPreference = "Stop"
+
+$walletArg = "-rpcwallet=$Wallet"
+
+$ownScript = "76a914751e76e8199196d454941c45d1b3a323f1433bd688ac"
+$allowedPayScript = "76a914f2124d94cabdb95d49479627cbbe5d7be609f73888ac"
+
+$badP2pkhScript = "76a914000000000000000000000000000000000000000088ac"
+$invalidScript = "51"
+
+function Invoke-Btc {
+    param([string[]]$ArgsList)
+
+    Write-Host ("bitcoin-cli " + ($ArgsList -join " "))
+
+    $out = & $BitcoinCli @ArgsList 2>&1
+    $code = $LASTEXITCODE
+
+    if ($code -ne 0) {
+        Write-Host $out
+        throw "bitcoin-cli failed with exit code $code"
+    }
+
+    return $out
+}
+
+function Convert-TxidToLittleEndianHex {
+    param([string]$Txid)
+
+    if ($Txid.Length -ne 64) {
+        throw "TXID must be 64 hex chars, got $Txid"
+    }
+
+    $pairs = @()
+
+    for ($i = 0; $i -lt $Txid.Length; $i += 2) {
+        $pairs += $Txid.Substring($i, 2)
+    }
+
+    [array]::Reverse($pairs)
+
+    return ($pairs -join "")
+}
+
+function Ensure-Wallet-And-Funds {
+    Write-Host ""
+    Write-Host "--- CHECK REGTEST NODE/WALLET ---"
+
+    $chain = Invoke-Btc -ArgsList @("-regtest", "getblockchaininfo") | ConvertFrom-Json
+
+    if ($chain.chain -ne "regtest") {
+        throw "Not on regtest"
+    }
+
+    $loadedWallets = Invoke-Btc -ArgsList @("-regtest", "listwallets") | ConvertFrom-Json
+
+    if ($loadedWallets -notcontains $Wallet) {
+        $walletDir = Invoke-Btc -ArgsList @("-regtest", "listwalletdir") | ConvertFrom-Json
+        $exists = $false
+
+        foreach ($w in $walletDir.wallets) {
+            if ($w.name -eq $Wallet) {
+                $exists = $true
+            }
+        }
+
+        if ($exists) {
+            Invoke-Btc -ArgsList @("-regtest", "loadwallet", $Wallet) | Write-Host
+        } else {
+            Invoke-Btc -ArgsList @("-regtest", "createwallet", $Wallet) | Write-Host
+        }
+    }
+
+    $walletInfo = Invoke-Btc -ArgsList @("-regtest", $walletArg, "getwalletinfo") | ConvertFrom-Json
+
+    if ($walletInfo.walletname -ne $Wallet) {
+        throw "Wrong wallet loaded"
+    }
+
+    $balances = Invoke-Btc -ArgsList @("-regtest", $walletArg, "getbalances") | ConvertFrom-Json
+    $trusted = [decimal]$balances.mine.trusted
+
+    Write-Host "TRUSTED_BALANCE=$trusted"
+
+    if ($trusted -lt 1.0) {
+        $mineAddr = Invoke-Btc -ArgsList @("-regtest", $walletArg, "getnewaddress", "negative-policy-mining", "bech32")
+        $mineAddr = ($mineAddr | Out-String).Trim()
+
+        Invoke-Btc -ArgsList @("-regtest", "generatetoaddress", "101", $mineAddr) | Write-Host
+    }
+
+    Write-Host "WALLET_READY"
+}
+
+function New-Fresh-Stm32-Utxo {
+    Write-Host ""
+    Write-Host "--- CREATE FRESH LIVE UTXO ---"
+
+    $stm32Addr = "mrCDrCybB6J1vRfbwM5hemdJz73FwDBC8r"
+    $fundAmountBtc = [decimal]$FundingSats / 100000000
+    $fundAmountText = "{0:0.00000000}" -f $fundAmountBtc
+
+    $fundTxid = Invoke-Btc -ArgsList @(
+        "-regtest",
+        $walletArg,
+        "-named",
+        "sendtoaddress",
+        "address=$stm32Addr",
+        "amount=$fundAmountText",
+        "fee_rate=1"
+    )
+
+    $fundTxid = ($fundTxid | Out-String).Trim()
+
+    if ($fundTxid.Length -ne 64) {
+        throw "Invalid funding txid: $fundTxid"
+    }
+
+    $confirmAddr = Invoke-Btc -ArgsList @("-regtest", $walletArg, "getnewaddress", "confirm-negative-policy-utxo", "bech32")
+    $confirmAddr = ($confirmAddr | Out-String).Trim()
+
+    Invoke-Btc -ArgsList @("-regtest", "generatetoaddress", "1", $confirmAddr) | Write-Host
+
+    $fundInfo = Invoke-Btc -ArgsList @("-regtest", $walletArg, "gettransaction", $fundTxid, "true") | ConvertFrom-Json
+    $fundHex = $fundInfo.hex
+
+    if ($null -eq $fundHex -or $fundHex.Length -eq 0) {
+        throw "Could not retrieve funding transaction hex"
+    }
+
+    $decoded = Invoke-Btc -ArgsList @("-regtest", "decoderawtransaction", $fundHex) | ConvertFrom-Json
+
+    $freshOut = $decoded.vout | Where-Object {
+        $_.scriptPubKey.hex -eq $ownScript
+    } | Select-Object -First 1
+
+    if ($null -eq $freshOut) {
+        throw "Could not find STM32 output in funding transaction"
+    }
+
+    $freshVout = [uint32]$freshOut.n
+    $freshInputSats = [uint64]([decimal]$freshOut.value * 100000000)
+    $freshTxidLe = Convert-TxidToLittleEndianHex $fundTxid
+
+    if ($freshInputSats -ne $FundingSats) {
+        throw "Funding sats mismatch. Expected $FundingSats, got $freshInputSats"
+    }
+
+    Write-Host "LIVE_TEST_UTXO_TXID=$fundTxid"
+    Write-Host "LIVE_TEST_UTXO_TXID_LE=$freshTxidLe"
+    Write-Host "LIVE_TEST_UTXO_VOUT=$freshVout"
+    Write-Host "LIVE_TEST_UTXO_INPUT_SATS=$freshInputSats"
+
+    return [pscustomobject]@{
+        Txid = $fundTxid
+        TxidLe = $freshTxidLe
+        Vout = $freshVout
+        InputSats = $freshInputSats
+    }
+}
+
+function Invoke-GeneratorExpectFail {
+    param(
+        [string]$Name,
+        [object]$Utxo,
+        [string]$ExpectedError,
+        [string]$Network = "REGTEST",
+        [string]$PrevScript = $ownScript,
+        [string]$PayScript = $allowedPayScript,
+        [uint64]$PaySats = 60000,
+        [string]$ChangeScript = $ownScript,
+        [uint64]$ChangeSats = 30000
+    )
+
+    Write-Host ""
+    Write-Host "--- NEGATIVE TEST: $Name ---"
+
+    $outFile = ".\tools\negative_$Name.rawtx.txt"
+    $logFile = ".\tools\negative_$Name.log.txt"
+
+    Remove-Item $outFile -Force -ErrorAction SilentlyContinue
+    Remove-Item $logFile -Force -ErrorAction SilentlyContinue
+
+    $childArgs = @(
+        "-NoProfile",
+        "-ExecutionPolicy", "Bypass",
+        "-File", ".\tools\wallet_generate_tx_command.ps1",
+        "-Port", $Port,
+        "-Network", $Network,
+        "-TxidLe", $Utxo.TxidLe,
+        "-Vout", "$($Utxo.Vout)",
+        "-InputSats", "$($Utxo.InputSats)",
+        "-PrevScript", $PrevScript,
+        "-PayScript", $PayScript,
+        "-PaySats", "$PaySats",
+        "-ChangeScript", $ChangeScript,
+        "-ChangeSats", "$ChangeSats",
+        "-RawTxOutFile", $outFile
+    )
+
+    $output = & powershell.exe @childArgs 2>&1
+    $text = ($output | Out-String)
+
+    Set-Content -Path $logFile -Value $text -Encoding ascii
+
+    Write-Host $text
+
+    if (-not $text.Contains($ExpectedError)) {
+        Write-Host ""
+        Write-Host "DEBUG_LOG_FILE=$logFile"
+        throw "$Name failed. Expected $ExpectedError"
+    }
+
+    if ($text.Contains("RAW_TX=") -or $text.Contains("HOST_TX_GENERATOR_PASS")) {
+        throw "$Name failed. Invalid transaction produced RAW_TX"
+    }
+
+    if (Test-Path $outFile) {
+        $rawMaybe = (Get-Content $outFile -Raw).Trim()
+
+        if ($rawMaybe.Length -gt 0) {
+            throw "$Name failed. Raw tx file was created: $outFile"
+        }
+    }
+
+    Write-Host "PASS $Name -> $ExpectedError"
+
+    Start-Sleep -Milliseconds 700
+}
+
+Write-Host ""
+Write-Host "============================================================"
+Write-Host " STM32 LIVE NEGATIVE POLICY REGRESSION"
+Write-Host " using proven wallet_generate_tx_command.ps1 UART path"
+Write-Host "============================================================"
+Write-Host "Wallet:      $Wallet"
+Write-Host "Serial Port: $Port"
+
+if (-not (Test-Path ".\tools\wallet_generate_tx_command.ps1")) {
+    throw "Missing .\tools\wallet_generate_tx_command.ps1"
+}
+
+Ensure-Wallet-And-Funds
+
+$utxo = New-Fresh-Stm32-Utxo
+
+Write-Host ""
+Write-Host "--- UART WARMUP ---"
+.\tools\wallet_generate_tx_command.ps1 `
+    -Port $Port `
+    -Network MAINNET `
+    -TxidLe $utxo.TxidLe `
+    -Vout $utxo.Vout `
+    -InputSats $utxo.InputSats `
+    -PaySats 60000 `
+    -ChangeSats 30000 | Out-Host
+
+Start-Sleep -Seconds 2
+
+Invoke-GeneratorExpectFail `
+    -Name "WRONG_NETWORK_REJECTED" `
+    -Utxo $utxo `
+    -Network "MAINNET" `
+    -ExpectedError "ERR POLICY -42"
+
+
+Invoke-GeneratorExpectFail `
+    -Name "HIGH_FEE_REJECTED" `
+    -Utxo $utxo `
+    -PaySats 60000 `
+    -ChangeSats 10000 `
+    -ExpectedError "ERR POLICY -35"
+
+Invoke-GeneratorExpectFail `
+    -Name "BAD_SCRIPT_TYPE_REJECTED" `
+    -Utxo $utxo `
+    -PayScript $invalidScript `
+    -ExpectedError "ERR POLICY -37"
+
+Invoke-GeneratorExpectFail `
+    -Name "BAD_PAY_RECIPIENT_REJECTED" `
+    -Utxo $utxo `
+    -PayScript $badP2pkhScript `
+    -ExpectedError "ERR POLICY -38"
+
+Invoke-GeneratorExpectFail `
+    -Name "BAD_CHANGE_REJECTED" `
+    -Utxo $utxo `
+    -ChangeScript $badP2pkhScript `
+    -ExpectedError "ERR POLICY -39"
+
+Invoke-GeneratorExpectFail `
+    -Name "BAD_INPUT_PREV_SCRIPT_REJECTED" `
+    -Utxo $utxo `
+    -PrevScript $badP2pkhScript `
+    -ExpectedError "ERR POLICY -40"
+
+Invoke-GeneratorExpectFail `
+    -Name "PAY_TOO_HIGH_REJECTED" `
+    -Utxo $utxo `
+    -PaySats 80000 `
+    -ChangeSats 10000 `
+    -ExpectedError "ERR POLICY -41"
+
+Write-Host ""
+Write-Host "LIVE_NEGATIVE_POLICY_REGRESSION_PASS"
+
+
